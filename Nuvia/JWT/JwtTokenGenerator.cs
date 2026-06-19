@@ -48,10 +48,10 @@ namespace Nuvia.JWT
             var issuer = _config["JwtSettings:Issuer"];
             var audience = _config["JwtSettings:Audience"];
 
-            var durationConfig = _config["JwtSettings:DurationInMinutes"];
+            var durationConfig = _config["JwtSettings:AccessTokenMinutes"];
             if (!double.TryParse(durationConfig, out double durationInMinutes))
             {
-                durationInMinutes = 60;
+                durationInMinutes = 60; // default fallback
             }
 
             var now = DateTime.UtcNow;

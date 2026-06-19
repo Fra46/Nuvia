@@ -1,0 +1,78 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+.vscode/
+*.sln.DotSettings
+*.user
+*.VC.db
+*.opendb
+
+# User-specific files
+*.rsuser
+*.suo
+*.sln.DotSettings.user
+
+# Build lock & configuration
+project.lock.json
+project.fragment.lock.json
+packages/
+
+# Test Results
+TestResults/
+[Xx]Unit.Results/
+*.trx
+
+# Secrets & Configuration
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+.env
+.env.*.local
+.env.local
+
+# User Secrets
+.dotnet/
+
+# OS files
+.DS_Store
+Thumbs.db
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# IDE
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Node (if used for frontend in monorepo)
+node_modules/
+dist/
+.next/
+
+# Coverage
+coverage/
+*.lcov
+
+# Environment
+*.env
+*.env.local

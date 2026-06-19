@@ -13,15 +13,18 @@ namespace Nuvia.Services.Payments
         private readonly StripeSettings _stripeSettings;
         private readonly NuviaDbContext _context;
         private readonly IPaymentService _paymentService;
+        private readonly IConfiguration _configuration;
 
         public PaymentStripeService(
             StripeSettings stripeSettings,
             NuviaDbContext context,
-            IPaymentService paymentService)
+            IPaymentService paymentService,
+            IConfiguration configuration)
         {
             _stripeSettings = stripeSettings;
             _context = context;
             _paymentService = paymentService;
+            _configuration = configuration;
         }
 
         public async Task<(string url, int paymentId)> CreateCheckoutSessionAsync(int userId, int bookingId)
@@ -50,7 +53,7 @@ namespace Nuvia.Services.Payments
                 booking.TotalPrice
             );
 
-            var domain = "http://localhost:5173";
+            var domain = _configuration.GetValue<string>("FrontendUrl") ?? "http://localhost:5173";
 
             var options = new SessionCreateOptions
             {

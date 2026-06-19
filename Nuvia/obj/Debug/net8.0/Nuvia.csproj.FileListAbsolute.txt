@@ -281,3 +281,5 @@ C:\Users\andre\Desktop\Nuvia\Nuvia\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalys
 C:\Users\andre\Desktop\Nuvia\Nuvia\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.Scripting.resources.dll
 C:\Users\andre\Desktop\Nuvia\Nuvia\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\andre\Desktop\Nuvia\Nuvia\bin\Debug\net8.0\Stripe.net.dll
+C:\Users\andre\Desktop\Nuvia\Nuvia\obj\Debug\net8.0\Nuvia.sourcelink.json
+C:\Users\andre\Desktop\Nuvia\Nuvia\obj\Debug\net8.0\swae.build.ex.cache

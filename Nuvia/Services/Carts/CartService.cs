@@ -35,12 +35,64 @@ namespace Nuvia.Services.Carts
                 c.ItemId == dto.ItemId
             );
 
+            // Obtener precio y nombre desde la entidad correspondiente en la BD
+            decimal unitPrice;
+            string itemName;
+
+            switch (dto.ItemType)
+            {
+                case CartItemType.Flight:
+                    var flight = await _context.Flights.FindAsync(dto.ItemId);
+                    if (flight == null)
+                        throw new NotFoundException($"El vuelo {dto.ItemId} no existe.");
+                    unitPrice = flight.Price;
+                    itemName = $"{flight.Airline} {flight.FlightCode} {flight.Origin}-{flight.Destination}";
+                    break;
+
+                case CartItemType.Hotel:
+                    var hotel = await _context.Hotels.FindAsync(dto.ItemId);
+                    if (hotel == null)
+                        throw new NotFoundException($"El hotel {dto.ItemId} no existe.");
+                    unitPrice = hotel.PricePerNight;
+                    itemName = hotel.Name;
+                    break;
+
+                case CartItemType.Tour:
+                    var tour = await _context.Tours.FindAsync(dto.ItemId);
+                    if (tour == null)
+                        throw new NotFoundException($"El tour {dto.ItemId} no existe.");
+                    unitPrice = tour.PricePerPerson;
+                    itemName = tour.Name;
+                    break;
+
+                case CartItemType.Package:
+                    var package = await _context.Packages.FindAsync(dto.ItemId);
+                    if (package == null)
+                        throw new NotFoundException($"El paquete {dto.ItemId} no existe.");
+                    unitPrice = package.TotalPrice;
+                    itemName = package.Title;
+                    break;
+
+                default:
+                    throw new ValidationException("Tipo de ítem no soportado", new Dictionary<string, string[]>
+                    {
+                        ["itemType"] = new[] { "Tipo de ítem inválido." }
+                    });
+            }
+
             if (existing is null)
             {
-                var entity = _mapper.Map<Cart>(dto);
-                entity.UserId = userId;
-                entity.CreatedAt = DateTime.UtcNow;
-                entity.TotalPrice = dto.UnitPrice * dto.Quantity;
+                var entity = new Cart
+                {
+                    UserId = userId,
+                    ItemType = dto.ItemType,
+                    ItemId = dto.ItemId,
+                    ItemName = itemName,
+                    Quantity = dto.Quantity > 0 ? dto.Quantity : 1,
+                    UnitPrice = unitPrice,
+                    CreatedAt = DateTime.UtcNow,
+                    TotalPrice = unitPrice * (dto.Quantity > 0 ? dto.Quantity : 1)
+                };
 
                 _context.Carts.Add(entity);
                 await _context.SaveChangesAsync();
@@ -49,7 +101,7 @@ namespace Nuvia.Services.Carts
             }
             else
             {
-                existing.Quantity += dto.Quantity;
+                existing.Quantity += dto.Quantity > 0 ? dto.Quantity : 1;
                 existing.TotalPrice = existing.UnitPrice * existing.Quantity;
 
                 await _context.SaveChangesAsync();

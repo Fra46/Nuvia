@@ -21,15 +21,18 @@ namespace Nuvia.Controllers
         private readonly NuviaDbContext _context;
         private readonly ILogger<StripeWebhookController> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly Nuvia.Stripe.StripeSettings _stripeSettings;
 
         public StripeWebhookController(
             NuviaDbContext context,
             ILogger<StripeWebhookController> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            Nuvia.Stripe.StripeSettings stripeSettings)
         {
             _context = context;
             _logger = logger;
             _emailSender = emailSender;
+            _stripeSettings = stripeSettings;
         }
 
         [HttpPost]
@@ -40,13 +43,54 @@ namespace Nuvia.Controllers
             Event stripeEvent;
             try
             {
-                // Modo dev: sin validar firma
-                stripeEvent = EventUtility.ParseEvent(json);
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    _logger.LogWarning("Webhook stripe recibido con body vacío.");
+                    return Ok();
+                }
+
+                // Intentar validar con firma si el webhook secret está configurado
+                var sigHeader = HttpContext.Request.Headers["Stripe-Signature"].FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(sigHeader) && !string.IsNullOrEmpty(_stripeSettings?.WebhookSecret))
+                {
+                    try
+                    {
+                        stripeEvent = EventUtility.ConstructEvent(
+                            json,
+                            sigHeader,
+                            _stripeSettings.WebhookSecret);
+
+                        _logger.LogInformation("Webhook de Stripe validado correctamente con firma.");
+                    }
+                    catch (StripeException ex)
+                    {
+                        _logger.LogError(ex, "Firma del webhook de Stripe inválida. Rechazando solicitud.");
+                        return Unauthorized(new { error = "Webhook signature verification failed" });
+                    }
+                }
+                else
+                {
+                    // Fallback: parseo sin validación (desarrollo local)
+                    _logger.LogWarning("Validando webhook sin firma (modo desarrollo).");
+                    stripeEvent = EventUtility.ParseEvent(json);
+                }
+
+                if (stripeEvent == null)
+                {
+                    _logger.LogWarning("EventUtility devolvió null para el body recibido.");
+                    return Ok();
+                }
             }
             catch (StripeException ex)
             {
                 _logger.LogWarning(ex, "No se pudo parsear el evento de Stripe.");
-                return Ok(); // no reintentamos
+                return Ok();
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Error procesando el body del webhook de Stripe.");
+                return Ok();
             }
 
             _logger.LogInformation("Stripe webhook recibido: {Type}", stripeEvent.Type);
