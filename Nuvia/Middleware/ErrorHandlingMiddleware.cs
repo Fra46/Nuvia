@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Nuvia.Exceptions;
 
 namespace Nuvia.Middleware
@@ -93,7 +94,7 @@ namespace Nuvia.Middleware
             context.Response.StatusCode = statusCode;
 
             var json = JsonSerializer.Serialize(responseObj,
-                new JsonSerializerOptions { IgnoreNullValues = true });
+                new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
 
             return context.Response.WriteAsync(json);
         }

@@ -13,8 +13,6 @@ namespace Nuvia.Services.Bookings
         : CrudService<Booking, BookingDTO, BookingCreateDTO, BookingUpdateDTO>,
           IBookingService
     {
-        private readonly NuviaDbContext _context;
-        private readonly IMapper _mapper;
         private readonly IEmailSender _emailSender;
 
         public BookingService(
@@ -23,8 +21,6 @@ namespace Nuvia.Services.Bookings
             IEmailSender emailSender)
             : base(context, mapper)
         {
-            _context = context;
-            _mapper = mapper;
             _emailSender = emailSender;
         }
 
