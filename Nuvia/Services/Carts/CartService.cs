@@ -29,6 +29,16 @@ namespace Nuvia.Services.Carts
 
         public async Task<CartDTO> AddItemAsync(int userId, CartCreateDTO dto)
         {
+            if (dto.Quantity <= 0)
+            {
+                throw new ValidationException(
+                    "La cantidad debe ser mayor que cero.",
+                    new Dictionary<string, string[]>
+                    {
+                        ["quantity"] = new[] { "La cantidad del carrito debe ser un número entero positivo." }
+                    });
+            }
+
             var existing = await _context.Carts.FirstOrDefaultAsync(c =>
                 c.UserId == userId &&
                 c.ItemType == dto.ItemType &&
@@ -112,6 +122,16 @@ namespace Nuvia.Services.Carts
 
         public async Task<bool> UpdateItemAsync(int userId, int itemId, CartUpdateDTO dto)
         {
+            if (dto.Quantity <= 0)
+            {
+                throw new ValidationException(
+                    "La cantidad debe ser mayor que cero.",
+                    new Dictionary<string, string[]>
+                    {
+                        ["quantity"] = new[] { "La cantidad del carrito debe ser un número entero positivo." }
+                    });
+            }
+
             var entity = await _context.Carts
                 .FirstOrDefaultAsync(c => c.Id == itemId && c.UserId == userId);
 

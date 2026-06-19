@@ -48,6 +48,16 @@ namespace Nuvia.Services.Payments
             return payment == null ? null : _mapper.Map<PaymentDTO>(payment);
         }
 
+        public async Task<PaymentDTO?> GetPendingForBookingAsync(int bookingId)
+        {
+            var payment = await _context.Payments
+                .Where(p => p.BookingId == bookingId && p.Method == PaymentMethod.Stripe && p.Status == PaymentStatus.Pending)
+                .OrderByDescending(p => p.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            return payment == null ? null : _mapper.Map<PaymentDTO>(payment);
+        }
+
         public async Task<PaymentDTO> CreatePendingAsync(int userId, int bookingId, decimal amount)
         {
             var booking = await _context.Bookings.FindAsync(bookingId);
@@ -57,10 +67,45 @@ namespace Nuvia.Services.Payments
             if (booking.UserId != userId)
                 throw new ForbiddenException("No puedes crear un pago para una reserva que no es tuya.");
 
+            if (booking.Status != BookingStatus.Pending)
+                throw new ValidationException(
+                    "La reserva no está disponible para pago.",
+                    new Dictionary<string, string[]>
+                    {
+                        ["bookingId"] = new[] { "La reserva no está en estado pendiente." }
+                    });
+
+            if (booking.TotalPrice <= 0m)
+                throw new ValidationException(
+                    "La reserva no tiene un total válido para pagar.",
+                    new Dictionary<string, string[]>
+                    {
+                        ["totalPrice"] = new[] { "El total debe ser mayor que cero." }
+                    });
+
+            var approvedExists = await _context.Payments
+                .AnyAsync(p => p.BookingId == bookingId && p.Method == PaymentMethod.Stripe && p.Status == PaymentStatus.Approved);
+
+            if (approvedExists)
+                throw new ValidationException(
+                    "La reserva ya fue pagada.",
+                    new Dictionary<string, string[]>
+                    {
+                        ["bookingId"] = new[] { "Existe un pago aprobado para esta reserva." }
+                    });
+
+            var existingPending = await _context.Payments
+                .Where(p => p.BookingId == bookingId && p.Method == PaymentMethod.Stripe && p.Status == PaymentStatus.Pending)
+                .OrderByDescending(p => p.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (existingPending != null)
+                return _mapper.Map<PaymentDTO>(existingPending);
+
             var payment = new Payment
             {
                 BookingId = bookingId,
-                Amount = amount,
+                Amount = booking.TotalPrice,
                 Method = PaymentMethod.Stripe,
                 Status = PaymentStatus.Pending,
                 CreatedAt = DateTime.UtcNow

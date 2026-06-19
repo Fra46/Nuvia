@@ -1910,28 +1910,9 @@
       "CartUpdateDTO": {
         "type": "object",
         "properties": {
-          "userId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "itemType": {
-            "$ref": "#/components/schemas/CartItemType"
-          },
-          "itemId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "itemName": {
-            "type": "string",
-            "nullable": true
-          },
           "quantity": {
             "type": "integer",
             "format": "int32"
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double"
           }
         },
         "additionalProperties": false

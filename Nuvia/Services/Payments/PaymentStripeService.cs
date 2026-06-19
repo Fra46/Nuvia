@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Nuvia.Data;
 using Nuvia.DTOs;
 using Nuvia.Exceptions;
 using Nuvia.Models;
+using Nuvia.Settings;
 using Nuvia.Stripe;
 using Stripe.Checkout;
 
@@ -11,20 +13,20 @@ namespace Nuvia.Services.Payments
     public class PaymentStripeService
     {
         private readonly StripeSettings _stripeSettings;
+        private readonly FrontendSettings _frontendSettings;
         private readonly NuviaDbContext _context;
         private readonly IPaymentService _paymentService;
-        private readonly IConfiguration _configuration;
 
         public PaymentStripeService(
-            StripeSettings stripeSettings,
+            IOptions<StripeSettings> stripeSettings,
+            IOptions<FrontendSettings> frontendSettings,
             NuviaDbContext context,
-            IPaymentService paymentService,
-            IConfiguration configuration)
+            IPaymentService paymentService)
         {
-            _stripeSettings = stripeSettings;
+            _stripeSettings = stripeSettings.Value;
+            _frontendSettings = frontendSettings.Value;
             _context = context;
             _paymentService = paymentService;
-            _configuration = configuration;
         }
 
         public async Task<(string url, int paymentId)> CreateCheckoutSessionAsync(int userId, int bookingId)
@@ -46,14 +48,15 @@ namespace Nuvia.Services.Payments
                         ["totalPrice"] = new[] { "El total debe ser mayor que cero." }
                     });
 
-            // Creamos el payment pendiente usando tu servicio
-            var paymentDto = await _paymentService.CreatePendingAsync(
+            // Usar un pago pendiente existente si ya hay uno para esta reserva.
+            var existingPayment = await _paymentService.GetPendingForBookingAsync(bookingId);
+            var paymentDto = existingPayment ?? await _paymentService.CreatePendingAsync(
                 userId,
                 bookingId,
                 booking.TotalPrice
             );
 
-            var domain = _configuration.GetValue<string>("FrontendUrl") ?? "http://localhost:5173";
+            var domain = _frontendSettings.Url ?? "http://localhost:5173";
 
             var options = new SessionCreateOptions
             {

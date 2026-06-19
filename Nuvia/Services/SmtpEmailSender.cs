@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using Microsoft.Extensions.Options;
+using Nuvia.Settings;
+using System.Net;
 using System.Net.Mail;
 using System.Text;
 
@@ -6,25 +8,24 @@ namespace Nuvia.Services
 {
     public class SmtpEmailSender : IEmailSender
     {
-        private readonly IConfiguration _config;
-        private readonly string _host;
-        private readonly int _port;
-        private readonly bool _enableSsl;
-        private readonly string _user;
-        private readonly string _password;
-        private readonly string _fromDisplay;
+        private readonly SmtpSettings _settings;
 
-        public SmtpEmailSender(IConfiguration config)
+        public SmtpEmailSender(IOptions<SmtpSettings> settings)
         {
-            _config = config;
-
-            _host = _config["Smtp:Host"]!;
-            _port = int.Parse(_config["Smtp:Port"] ?? "587");
-            _enableSsl = bool.Parse(_config["Smtp:EnableSsl"] ?? "true");
-            _user = _config["Smtp:User"]!;
-            _password = _config["Smtp:Password"]!;
-            _fromDisplay = _config["Smtp:From"] ?? _user; // Ej: "Nuvia <correo@x>"
+            _settings = settings.Value;
         }
+
+        public SmtpEmailSender(SmtpSettings settings)
+        {
+            _settings = settings;
+        }
+
+        private string Host => _settings.Host;
+        private int Port => _settings.Port;
+        private bool EnableSsl => _settings.EnableSsl;
+        private string User => _settings.User;
+        private string Password => _settings.Password;
+        private string FromDisplay => _settings.From ?? _settings.User;
         
         public async Task SendMagicLinkAsync(string toEmail, string magicLinkUrl, string? userName)
         {
@@ -74,15 +75,15 @@ namespace Nuvia.Services
     string htmlBody,
     string plainTextBody)
         {
-            using var client = new SmtpClient(_host, _port)
+            using var client = new SmtpClient(Host, Port)
             {
-                EnableSsl = _enableSsl,
-                Credentials = new NetworkCredential(_user, _password)
+                EnableSsl = EnableSsl,
+                Credentials = new NetworkCredential(User, Password)
             };
 
             using var message = new MailMessage
             {
-                From = new MailAddress(_user, "Nuvia"),
+                From = new MailAddress(User, "Nuvia"),
                 Subject = subject,
                 Body = string.Empty,
                 IsBodyHtml = false

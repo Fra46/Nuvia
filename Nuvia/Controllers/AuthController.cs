@@ -21,8 +21,8 @@ namespace Nuvia.Controllers
         [HttpPost("magic-link/request")]
         public async Task<IActionResult> RequestMagicLink([FromBody] MagicLinkRequestDTO dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Email))
-                return BadRequest("Email es requerido.");
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
 
             await _authService.RequestMagicLinkAsync(dto);
             return Ok(new { message = "Si el email existe, se envió un magic link." });
@@ -31,8 +31,8 @@ namespace Nuvia.Controllers
         [HttpPost("magic-link/confirm")]
         public async Task<ActionResult<AuthResponseDTO>> ConfirmMagicLink([FromBody] MagicLinkConfirmDTO dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Token))
-                return BadRequest("Token es requerido.");
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
 
             try
             {

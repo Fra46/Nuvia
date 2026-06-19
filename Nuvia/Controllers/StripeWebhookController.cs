@@ -2,9 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Nuvia.Data;
 using Nuvia.Models;
 using Nuvia.Services;
+using Nuvia.Services.Payments;
+using Nuvia.Settings;
+using Nuvia.Stripe;
 using Stripe;
 using Stripe.Checkout;
 using System.IO;
@@ -21,18 +25,21 @@ namespace Nuvia.Controllers
         private readonly NuviaDbContext _context;
         private readonly ILogger<StripeWebhookController> _logger;
         private readonly IEmailSender _emailSender;
-        private readonly Nuvia.Stripe.StripeSettings _stripeSettings;
+        private readonly StripeSettings _stripeSettings;
+        private readonly IPaymentService _paymentService;
 
         public StripeWebhookController(
             NuviaDbContext context,
             ILogger<StripeWebhookController> logger,
             IEmailSender emailSender,
-            Nuvia.Stripe.StripeSettings stripeSettings)
+            IOptions<StripeSettings> stripeSettings,
+            IPaymentService paymentService)
         {
             _context = context;
             _logger = logger;
             _emailSender = emailSender;
-            _stripeSettings = stripeSettings;
+            _stripeSettings = stripeSettings.Value;
+            _paymentService = paymentService;
         }
 
         [HttpPost]
@@ -59,7 +66,8 @@ namespace Nuvia.Controllers
                         stripeEvent = EventUtility.ConstructEvent(
                             json,
                             sigHeader,
-                            _stripeSettings.WebhookSecret);
+                            _stripeSettings.WebhookSecret,
+                            throwOnApiVersionMismatch: false);
 
                         _logger.LogInformation("Webhook de Stripe validado correctamente con firma.");
                     }
@@ -72,8 +80,8 @@ namespace Nuvia.Controllers
                 else
                 {
                     // Fallback: parseo sin validación (desarrollo local)
-                    _logger.LogWarning("Validando webhook sin firma (modo desarrollo).");
-                    stripeEvent = EventUtility.ParseEvent(json);
+                    _logger.LogWarning("Validando webhook sin firma (modo desarrollo). Mismatch de versión API puede ocurrir.");
+                    stripeEvent = EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
                 }
 
                 if (stripeEvent == null)
@@ -116,6 +124,12 @@ namespace Nuvia.Controllers
 
             try
             {
+                if (session.PaymentIntentId == null)
+                {
+                    _logger.LogWarning("Session {SessionId} no tiene PaymentIntentId.", session.Id);
+                    return;
+                }
+
                 // 1) Sacar paymentId y bookingId del metadata
                 if (!session.Metadata.TryGetValue("paymentId", out var paymentIdStr) ||
                     !int.TryParse(paymentIdStr, out var paymentId))
@@ -131,7 +145,20 @@ namespace Nuvia.Controllers
                     return;
                 }
 
-                // 2) Buscar el Payment + Booking + User por ID
+                var approved = await _paymentService.MarkAsApprovedAsync(
+                    paymentId,
+                    stripeIntentId: session.PaymentIntentId,
+                    stripeSessionId: session.Id);
+
+                if (!approved)
+                {
+                    _logger.LogWarning(
+                        "No se pudo aprobar el payment {PaymentId} asociado a la sesión {SessionId}.",
+                        paymentId,
+                        session.Id);
+                    return;
+                }
+
                 var payment = await _context.Payments
                     .Include(p => p.Booking)
                     .ThenInclude(b => b.User)
@@ -140,38 +167,17 @@ namespace Nuvia.Controllers
                 if (payment == null)
                 {
                     _logger.LogWarning(
-                        "No se encontró Payment con Id={PaymentId} y BookingId={BookingId}",
+                        "No se encontró Payment con Id={PaymentId} y BookingId={BookingId} tras aprobarlo.",
                         paymentId,
-                        bookingId
-                    );
+                        bookingId);
                     return;
                 }
-
-                // 3) Actualizar Payment
-                payment.Status = PaymentStatus.Approved;
-                payment.StripePaymentIntentId = session.PaymentIntentId;
-                payment.StripeSessionId = session.Id;
-
-                if (!string.IsNullOrEmpty(session.CustomerId))
-                {
-                    payment.StripeCustomerId = session.CustomerId;
-                }
-
-                // 4) Actualizar Booking
-                if (payment.Booking != null)
-                {
-                    payment.Booking.Status = BookingStatus.Confirmed;
-                }
-
-                await _context.SaveChangesAsync();
 
                 _logger.LogInformation(
                     "Payment {PaymentId} aprobado y Booking #{BookingId} confirmada.",
                     payment.Id,
-                    payment.BookingId
-                );
+                    payment.BookingId);
 
-                // 5) Enviar email de recibo de pago
                 var booking = payment.Booking;
                 var user = booking?.User;
 
@@ -183,8 +189,7 @@ namespace Nuvia.Controllers
                         booking.BookingCode,
                         payment.Id,
                         payment.Amount,
-                        DateTime.UtcNow // o payment.CreatedAt si prefieres
-                    );
+                        DateTime.UtcNow);
                 }
             }
             catch (System.Exception ex)

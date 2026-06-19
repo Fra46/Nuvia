@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Nuvia.Data;
 using Nuvia.DTOs;
 using Nuvia.JWT;
 using Nuvia.Models;
+using Nuvia.Settings;
 using System.Security.Cryptography;
 
 namespace Nuvia.Services
@@ -12,20 +14,20 @@ namespace Nuvia.Services
     {
         private readonly NuviaDbContext _context;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
-        private readonly IConfiguration _configuration;
+        private readonly MagicLinkSettings _magicLinkSettings;
         private readonly IMapper _mapper;
         private readonly IEmailSender _emailSender;
 
         public AuthService(
             NuviaDbContext context,
             IJwtTokenGenerator jwtTokenGenerator,
-            IConfiguration configuration,
+            IOptions<MagicLinkSettings> magicLinkSettings,
             IMapper mapper,
             IEmailSender emailSender)
         {
             _context = context;
             _jwtTokenGenerator = jwtTokenGenerator;
-            _configuration = configuration;
+            _magicLinkSettings = magicLinkSettings.Value;
             _mapper = mapper;
             _emailSender = emailSender;
         }
@@ -59,8 +61,7 @@ namespace Nuvia.Services
 
             await _context.SaveChangesAsync();
 
-            var baseUrl = _configuration.GetSection("MagicLink").GetValue<string>("BaseUrl");
-            var magicLinkUrl = $"{baseUrl}/auth/magic-login?token={Uri.EscapeDataString(token)}";
+            var magicLinkUrl = $"{_magicLinkSettings.BaseUrl}/auth/magic-login?token={Uri.EscapeDataString(token)}";
 
             await _emailSender.SendMagicLinkAsync(user.Email, magicLinkUrl, user.FullName);
         }

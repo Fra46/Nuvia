@@ -1,5 +1,7 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Nuvia.Models;
+using Nuvia.Settings;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -8,16 +10,16 @@ namespace Nuvia.JWT
 {
     public class JwtTokenGenerator : IJwtTokenGenerator
     {
-        private readonly IConfiguration _config;
+        private readonly JwtSettings _settings;
 
-        public JwtTokenGenerator(IConfiguration config)
+        public JwtTokenGenerator(IOptions<JwtSettings> settings)
         {
-            _config = config;
+            _settings = settings.Value;
         }
 
         public string GenerateToken(User user, out DateTime expiresAt)
         {
-            var keyString = _config["JwtSettings:Key"];
+            var keyString = _settings.Key;
 
             if (string.IsNullOrWhiteSpace(keyString))
                 throw new InvalidOperationException("JwtSettings:Key no está configurada.");
@@ -45,14 +47,10 @@ namespace Nuvia.JWT
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            var issuer = _config["JwtSettings:Issuer"];
-            var audience = _config["JwtSettings:Audience"];
+            var issuer = _settings.Issuer;
+            var audience = _settings.Audience;
 
-            var durationConfig = _config["JwtSettings:AccessTokenMinutes"];
-            if (!double.TryParse(durationConfig, out double durationInMinutes))
-            {
-                durationInMinutes = 60; // default fallback
-            }
+            var durationInMinutes = _settings.AccessTokenMinutes;
 
             var now = DateTime.UtcNow;
             expiresAt = now.AddMinutes(durationInMinutes);

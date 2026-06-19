@@ -1,16 +1,16 @@
-﻿using Nuvia.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using Nuvia.Models;
 
 namespace Nuvia.DTOs
 {
     public class CartUpdateDTO
     {
-        public int UserId { get; set; }
-
-        public CartItemType ItemType { get; set; }
-        public int ItemId { get; set; }
-        public string ItemName { get; set; } = null!;
-
+        /// <summary>
+        /// El servidor solo actualiza la cantidad del ítem.
+        /// Los demás campos (ItemName, UnitPrice, etc.) son ignorados.
+        /// </summary>
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Quantity debe ser mayor que cero.")]
         public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
     }
 }

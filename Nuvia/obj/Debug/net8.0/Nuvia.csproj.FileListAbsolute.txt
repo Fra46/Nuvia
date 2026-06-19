@@ -155,7 +155,6 @@ C:\Users\andre\Desktop\Nuvia\Nuvia\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\andre\Desktop\Nuvia\Nuvia\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\Users\andre\Desktop\Nuvia\Nuvia\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\andre\Desktop\Nuvia\Nuvia\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\Users\andre\Desktop\Nuvia\Nuvia\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\andre\Desktop\Nuvia\Nuvia\obj\Debug\net8.0\Nuvia.csproj.Up2Date
 C:\Users\andre\Desktop\Nuvia\Nuvia\obj\Debug\net8.0\Nuvia.dll
 C:\Users\andre\Desktop\Nuvia\Nuvia\obj\Debug\net8.0\refint\Nuvia.dll

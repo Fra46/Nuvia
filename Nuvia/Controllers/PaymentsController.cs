@@ -77,6 +77,9 @@ namespace Nuvia.Controllers
             [FromBody] CreateCheckoutSessionRequestDTO request,
             [FromServices] PaymentStripeService stripeService)
         {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
             var userId = GetCurrentUserId();
 
             var (url, paymentId) = await stripeService.CreateCheckoutSessionAsync(userId, request.BookingId);

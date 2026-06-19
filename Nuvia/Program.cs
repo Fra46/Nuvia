@@ -14,6 +14,7 @@ using Nuvia.Services.Hotels;
 using Nuvia.Services.Packages;
 using Nuvia.Services.Tours;
 using Nuvia.Services.Payments;
+using Nuvia.Settings;
 using Nuvia.Stripe;
 using Stripe;
 using System.Security.Claims;
@@ -66,25 +67,38 @@ builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
-var stripeSettings = new StripeSettings();
-builder.Configuration.GetSection("Stripe").Bind(stripeSettings);
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+builder.Services.Configure<MagicLinkSettings>(builder.Configuration.GetSection("MagicLink"));
+builder.Services.Configure<FrontendSettings>(builder.Configuration.GetSection("Frontend"));
+builder.Services.Configure<CorsSettings>(builder.Configuration.GetSection("Cors"));
 
-builder.Services.AddSingleton(stripeSettings);
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
-StripeConfiguration.ApiKey = stripeSettings.SecretKey;
+var corsSettings = builder.Configuration.GetSection("Cors").Get<CorsSettings>() ?? new CorsSettings
+{
+    AllowedOrigins = new[] { "http://localhost:3000", "http://192.168.229.201:3000" }
+};
+
+if (corsSettings.AllowedOrigins.Length == 0)
+{
+    corsSettings.AllowedOrigins = new[] { "http://localhost:3000", "http://192.168.229.201:3000" };
+}
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("NuviaPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://192.168.229.201:3000")
+        policy.WithOrigins(corsSettings.AllowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
 
-var jwtKey = builder.Configuration["JwtSettings:Key"];
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+var jwtKey = jwtSettings?.Key ?? throw new InvalidOperationException("JwtSettings:Key no estÃ¡ configurada.");
 
 builder.Services
     .AddAuthentication("Bearer")
@@ -96,9 +110,9 @@ builder.Services
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-            ValidAudience = builder.Configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!)),
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             RoleClaimType = ClaimTypes.Role
         };
     });
@@ -111,7 +125,7 @@ builder.Services.AddSwaggerGen(c =>
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Autenticación JWT usando Bearer. Ejemplo: 'Bearer {token}'",
+        Description = "Autenticaciï¿½n JWT usando Bearer. Ejemplo: 'Bearer {token}'",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -139,8 +153,6 @@ var app = builder.Build();
 NuviaSeeder.Seed(app);
 
 app.UseMiddleware<Nuvia.Middleware.ErrorHandlingMiddleware>();
-
-app.UseMiddleware<Nuvia.Middleware.TokenValidationMiddleware>();
 
 app.UseCors("NuviaPolicy");
 
