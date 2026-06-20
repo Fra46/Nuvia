@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.IdentityModel.Tokens;
 using Nuvia.Exceptions;
 
 namespace Nuvia.Middleware
@@ -36,6 +37,7 @@ namespace Nuvia.Middleware
 
         private Task WriteErrorResponseAsync(HttpContext context, Exception ex)
         {
+            context.Response.Clear();
             int statusCode;
             string code;
             string message;
@@ -48,6 +50,18 @@ namespace Nuvia.Middleware
                     code = vex.Code ?? "validation_error";
                     message = vex.Message;
                     extra = new { errors = vex.Errors };
+                    break;
+
+                case SecurityTokenExpiredException:
+                    statusCode = StatusCodes.Status401Unauthorized;
+                    code = "token_expired";
+                    message = "Tu sesión ha expirado. Inicia sesión nuevamente.";
+                    break;
+
+                case ArgumentException aex:
+                    statusCode = StatusCodes.Status400BadRequest;
+                    code = "invalid_argument";
+                    message = aex.Message;
                     break;
 
                 case NotFoundException nfex:
@@ -69,13 +83,19 @@ namespace Nuvia.Middleware
                     break;
 
                 case UnauthorizedAccessException:
-                    statusCode = (int)HttpStatusCode.Unauthorized;
+                    statusCode = StatusCodes.Status401Unauthorized;
                     code = "unauthorized";
                     message = "No estás autorizado para realizar esta acción.";
                     break;
 
+                case OperationCanceledException:
+                    statusCode = StatusCodes.Status503ServiceUnavailable;
+                    code = "request_canceled";
+                    message = "La solicitud fue cancelada o el servidor no pudo procesarla a tiempo.";
+                    break;
+
                 default:
-                    statusCode = (int)HttpStatusCode.InternalServerError;
+                    statusCode = StatusCodes.Status500InternalServerError;
                     code = "server_error";
                     message = "Ocurrió un error inesperado en el servidor.";
                     break;

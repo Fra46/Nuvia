@@ -10,10 +10,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("5cad843a-88b5-49e9-a534-8064c54c69a4")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("Nuvia")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d1c1c158a29582f132d5f4175685bdff7c22240f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6708effb2786a8c737b2642137b8283638a3f836")]
 [assembly: System.Reflection.AssemblyProductAttribute("Nuvia")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Nuvia")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

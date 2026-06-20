@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Nuvia.DTOs;
 using Nuvia.Models;
 using Nuvia.Services.Payments;
@@ -8,6 +9,8 @@ using System.Security.Claims;
 
 namespace Nuvia.Controllers
 {
+    [ApiVersion("1.0")]
+    [EnableRateLimiting("payments")]
     [Route("api/[controller]")]
     [ApiController]
     public class PaymentsController : ControllerBase

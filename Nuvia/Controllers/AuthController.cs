@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Nuvia.DTOs;
 using Nuvia.Services;
 
 namespace Nuvia.Controllers
 {
+    [ApiVersion("1.0")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace Nuvia.Controllers
 {
+    [ApiVersion("1.0")]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase

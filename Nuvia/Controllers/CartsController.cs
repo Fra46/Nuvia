@@ -7,6 +7,7 @@ using System.Security.Claims;
 
 namespace Nuvia.Controllers
 {
+    [ApiVersion("1.0")]
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]

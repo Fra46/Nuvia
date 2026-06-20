@@ -9,6 +9,7 @@ using System.Security.Claims;
 
 namespace Nuvia.Controllers
 {
+    [ApiVersion("1.0")]
     [Route("api/[controller]")]
     [ApiController]
     public class BookingsController : ControllerBase

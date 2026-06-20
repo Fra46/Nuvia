@@ -6,6 +6,7 @@ using Nuvia.Services.Base;
 
 namespace Nuvia.Controllers
 {
+    [ApiVersion("1.0")]
     [Route("api/[controller]")]
     [ApiController]
     public class FlightsController : ControllerBase

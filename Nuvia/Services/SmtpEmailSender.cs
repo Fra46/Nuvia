@@ -75,15 +75,21 @@ namespace Nuvia.Services
     string htmlBody,
     string plainTextBody)
         {
+            if (string.IsNullOrWhiteSpace(Host))
+                throw new InvalidOperationException("SMTP host no está configurado.");
+
             using var client = new SmtpClient(Host, Port)
             {
                 EnableSsl = EnableSsl,
-                Credentials = new NetworkCredential(User, Password)
+                Credentials = new NetworkCredential(User, Password),
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false,
+                Timeout = 10000
             };
 
             using var message = new MailMessage
             {
-                From = new MailAddress(User, "Nuvia"),
+                From = new MailAddress(FromDisplay, "Nuvia"),
                 Subject = subject,
                 Body = string.Empty,
                 IsBodyHtml = false

@@ -17,6 +17,7 @@ using Event = Stripe.Event;
 
 namespace Nuvia.Controllers
 {
+    [ApiVersion("1.0")]
     [ApiController]
     [Route("api/webhooks/stripe")]
     [AllowAnonymous]
