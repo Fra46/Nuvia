@@ -28,7 +28,7 @@ const api = {
       // El servidor respondió con un código de error
       return {
         status: error.response.status,
-        message: error.response.data?.message || 'Error en la solicitud',
+        message: error.response.data?.message || error.response.data?.error || 'Error en la solicitud',
         data: error.response.data,
       };
     } else if (error.request) {

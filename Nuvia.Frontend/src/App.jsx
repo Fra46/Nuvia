@@ -1,16 +1,40 @@
-import React from 'react'
-import Navbar from './components/Navbar'
+import React from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import SiteHeader from './components/SiteHeader';
+import SiteFooter from './components/SiteFooter';
+import HomePage from './pages/HomePage';
+import FlightsPage from './pages/FlightsPage';
+import HotelsPage from './pages/HotelsPage';
+import ToursPage from './pages/ToursPage';
+import PackagesPage from './pages/PackagesPage';
+import CartPage from './pages/CartPage';
+import LoginPage from './pages/LoginPage';
+import MagicLoginPage from './pages/MagicLoginPage';
 
 export default function App() {
   return (
-    <div>
-      <Navbar />
-      <main className="container py-4">
-        <div className="p-4 bg-light rounded-3">
-          <h1 className="display-6">Bienvenido a Nuvia</h1>
-          <p className="lead">Nuevo frontend con React + Vite + Bootstrap</p>
-        </div>
-      </main>
-    </div>
-  )
+    <AuthProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <SiteHeader />
+          <main className="app-main">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/flights" element={<FlightsPage />} />
+              <Route path="/hotels" element={<HotelsPage />} />
+              <Route path="/tours" element={<ToursPage />} />
+              <Route path="/packages" element={<PackagesPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/auth/magic-login" element={<MagicLoginPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+          <SiteFooter />
+        </BrowserRouter>
+      </CartProvider>
+    </AuthProvider>
+  );
 }
