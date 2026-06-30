@@ -75,8 +75,15 @@ namespace Nuvia.Services
     string htmlBody,
     string plainTextBody)
         {
+            // Validación del email destinatario
+            if (string.IsNullOrWhiteSpace(toEmail))
+                throw new ArgumentException("El email destinatario no puede estar vacío.", nameof(toEmail));
+
             if (string.IsNullOrWhiteSpace(Host))
                 throw new InvalidOperationException("SMTP host no está configurado.");
+
+            if (string.IsNullOrWhiteSpace(FromDisplay))
+                throw new InvalidOperationException("La configuración SMTP 'From' o 'User' no está configurada.");
 
             using var client = new SmtpClient(Host, Port)
             {

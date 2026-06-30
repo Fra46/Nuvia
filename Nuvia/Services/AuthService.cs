@@ -34,7 +34,13 @@ namespace Nuvia.Services
 
         public async Task RequestMagicLinkAsync(MagicLinkRequestDTO dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                throw new ArgumentException("El email no puede estar vacío.", nameof(dto.Email));
+
             var email = dto.Email.Trim().ToLower();
+
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("El email no puede estar vacío o contener solo espacios.", nameof(dto.Email));
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
