@@ -116,14 +116,35 @@ builder.Services.Configure<CorsSettings>(builder.Configuration.GetSection("Cors"
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
-var corsSettings = builder.Configuration.GetSection("Cors").Get<CorsSettings>() ?? new CorsSettings
+var corsSettings = builder.Configuration.GetSection("Cors").Get<CorsSettings>() ?? new CorsSettings();
+
+var defaultOrigins = new[]
 {
-    AllowedOrigins = new[] { "http://localhost:3000", "http://192.168.229.201:3000" }
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://192.168.229.201:3000",
+    "http://192.168.229.201:5173"
 };
 
-if (corsSettings.AllowedOrigins.Length == 0)
+if (corsSettings.AllowedOrigins == null || corsSettings.AllowedOrigins.Length == 0)
 {
-    corsSettings.AllowedOrigins = new[] { "http://localhost:3000", "http://192.168.229.201:3000" };
+    corsSettings.AllowedOrigins = defaultOrigins;
+}
+else
+{
+    var mergedOrigins = new List<string>(corsSettings.AllowedOrigins);
+    foreach (var origin in defaultOrigins)
+    {
+        if (!mergedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+        {
+            mergedOrigins.Add(origin);
+        }
+    }
+
+    corsSettings.AllowedOrigins = mergedOrigins.ToArray();
 }
 
 builder.Services.AddCors(options =>

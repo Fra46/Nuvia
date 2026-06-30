@@ -42,7 +42,7 @@ export default function SiteHeader() {
         </nav>
 
         <div className="site-header__actions">
-          <Link to="/packages" className="btn btn-outline">
+          <Link to="/packages" className="btn btn-primary site-header__plan-button">
             Planea tu viaje
           </Link>
           <Link to="/cart" className="site-header__cart" aria-label="Carrito">
@@ -50,11 +50,11 @@ export default function SiteHeader() {
             {count > 0 && <span className="site-header__badge">{count}</span>}
           </Link>
           {user ? (
-            <button onClick={logout} className="btn btn-sm btn-outline-danger ms-3">
+            <button onClick={logout} className="btn btn-outline site-header__auth-button">
               Salir
             </button>
           ) : (
-            <Link to="/login" className="btn btn-sm btn-outline-primary ms-3">
+            <Link to="/login" className="btn btn-outline site-header__auth-button">
               Login
             </Link>
           )}
