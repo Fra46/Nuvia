@@ -64,6 +64,12 @@ namespace Nuvia.Middleware
                     message = aex.Message;
                     break;
 
+                case InvalidOperationException iox:
+                    statusCode = StatusCodes.Status500InternalServerError;
+                    code = "configuration_error";
+                    message = iox.Message;
+                    break;
+
                 case NotFoundException nfex:
                     statusCode = nfex.StatusCode;
                     code = nfex.Code ?? "not_found";
