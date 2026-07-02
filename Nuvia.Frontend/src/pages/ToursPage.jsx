@@ -29,14 +29,14 @@ export default function ToursPage() {
     <main>
       <CategoryHero
         eyebrow="Tours"
-        title="Explora experiencias únicas"
-        subtitle="Excursiones locales y aventuras cuidadosamente seleccionadas."
+        title="Tours inolvidables"
+        subtitle="Explora y descubre experiencias únicas guiadas por expertos locales."
         image={getHeroImage('tours')}
       />
-      <section className="page-section">
-        {loading && <p>Cargando tours...</p>}
+      <section className="container-xl py-5">
+        {loading && <p className="text-muted-nv">Cargando tours...</p>}
         {error && <p className="text-danger">{error}</p>}
-        <Catalog products={tours} showTypeFilter={false} initialSort="rating" />
+        {!loading && !error && <Catalog products={tours} showTypeFilter={false} />}
       </section>
     </main>
   );

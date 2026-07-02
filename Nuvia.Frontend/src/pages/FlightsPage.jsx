@@ -33,10 +33,10 @@ export default function FlightsPage() {
         subtitle="Los mejores precios nacionales e internacionales, sin cargos ocultos."
         image={getHeroImage('flights')}
       />
-      <section className="page-section">
-        {loading && <p>Cargando vuelos...</p>}
+      <section className="container-xl py-5">
+        {loading && <p className="text-muted-nv">Cargando vuelos...</p>}
         {error && <p className="text-danger">{error}</p>}
-        <Catalog products={flights} showTypeFilter={false} initialSort="price-asc" />
+        {!loading && !error && <Catalog products={flights} showTypeFilter={false} initialSort="price-asc" />}
       </section>
     </main>
   );

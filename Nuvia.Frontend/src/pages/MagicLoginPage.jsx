@@ -27,12 +27,12 @@ export default function MagicLoginPage() {
   }, [confirmMagicLink, location.search, navigate]);
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-6">
-        <div className="card shadow-sm">
-          <div className="card-body p-4">
-            <h2 className="h4 mb-3">Confirmando acceso</h2>
-            <p className="text-muted">
+    <main className="container-xl" style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+      <div className="row justify-content-center">
+        <div className="col-12 col-lg-6">
+          <div className="nv-card p-4 p-md-5 text-center">
+            <h1 className="font-heading fw-semibold fs-2 mb-2">Confirmando acceso</h1>
+            <p className="text-muted-nv mb-0">
               {loading
                 ? 'Validando tu enlace de acceso...'
                 : isAuthenticated
@@ -40,10 +40,10 @@ export default function MagicLoginPage() {
                   : 'Esperando el token de autenticación.'}
             </p>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            {error && <div className="alert alert-danger mt-3 mb-0">{error}</div>}
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

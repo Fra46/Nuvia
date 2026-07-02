@@ -29,14 +29,14 @@ export default function HotelsPage() {
     <main>
       <CategoryHero
         eyebrow="Hoteles"
-        title="Hospedajes con estilo"
-        subtitle="Encuentra hoteles boutique, resorts y estancias con experiencia personalizada."
+        title="Hoteles confortables"
+        subtitle="Estadías boutique y resorts frente al mar con descuentos exclusivos."
         image={getHeroImage('hotels')}
       />
-      <section className="page-section">
-        {loading && <p>Cargando hoteles...</p>}
+      <section className="container-xl py-5">
+        {loading && <p className="text-muted-nv">Cargando hoteles...</p>}
         {error && <p className="text-danger">{error}</p>}
-        <Catalog products={hotels} showTypeFilter={false} initialSort="rating" />
+        {!loading && !error && <Catalog products={hotels} showTypeFilter={false} />}
       </section>
     </main>
   );

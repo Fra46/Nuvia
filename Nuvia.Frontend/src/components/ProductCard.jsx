@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Check, Clock, MapPin, Plus, Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { formatCOP, categoryLabels } from '../data/products';
+import { categoryLabels, formatCOP } from '../data/productHelpers';
 
 export default function ProductCard({ product }) {
   const { add } = useCart();
@@ -10,53 +10,71 @@ export default function ProductCard({ product }) {
   const handleAdd = () => {
     add(product);
     setAdded(true);
-    window.setTimeout(() => setAdded(false), 1400);
+    window.setTimeout(() => setAdded(false), 1600);
   };
 
   return (
-    <article className="product-card">
-      <div className="product-card__image" role="img" aria-label={product.name}>
-        <img src={product.image} alt={product.name} />
-        <span className="product-card__badge">{categoryLabels[product.category]}</span>
-        <span className="product-card__rating-bubble">
-          <Star className="h-4 w-4" /> {product.rating}
-        </span>
+    <article className="nv-card h-100 d-flex flex-column">
+      <div className="position-relative" style={{ aspectRatio: '4 / 3', overflow: 'hidden' }}>
+        <img src={product.image} alt={product.name} className="img-cover" />
+        <div className="position-absolute top-0 start-0 end-0 d-flex justify-content-between p-3">
+          <span className="chip bg-white text-teal text-uppercase-xs shadow-sm">
+            {categoryLabels[product.category]}
+          </span>
+          <span className="chip bg-white shadow-sm" style={{ color: 'var(--nv-ink)' }}>
+            <Star size={14} className="text-amber" fill="currentColor" />
+            {product.rating}
+          </span>
+        </div>
       </div>
-      <div className="product-card__body">
-        <div className="product-card__meta-row">
-          <div className="product-card__meta">
-            <MapPin className="h-4 w-4" /> {product.location}
-          </div>
+
+      <div className="d-flex flex-column flex-grow-1 p-4">
+        <div className="d-flex align-items-center gap-2 small text-muted-nv">
+          <MapPin size={14} className="text-amber" />
+          <span className="text-truncate">{product.location}</span>
           {product.meta && (
-            <div className="product-card__meta">
-              <Clock className="h-4 w-4" /> {product.meta}
-            </div>
+            <>
+              <span aria-hidden>·</span>
+              <Clock size={14} className="text-amber" />
+              <span className="text-truncate">{product.meta}</span>
+            </>
           )}
         </div>
 
-        <h3>{product.name}</h3>
-        <p>{product.description}</p>
+        <h3 className="font-heading fs-4 fw-semibold lh-sm mt-2 mb-1">{product.name}</h3>
+        <p className="small text-muted-nv clamp-2 mb-0" style={{ lineHeight: 1.5 }}>
+          {product.description}
+        </p>
 
-        <div className="product-card__tags">
-          {product.features?.slice(0, 3).map((feature) => (
-            <span key={feature} className="product-card__tag">
-              {feature}
-            </span>
-          ))}
-        </div>
-
-        <div className="product-card__footer">
-          <div>
-            <span className="product-card__price">{formatCOP(product.price)}</span>
+        {product.features?.length > 0 && (
+          <div className="d-flex flex-wrap gap-2 mt-3">
+            {product.features.slice(0, 3).map((feature) => (
+              <span key={feature} className="chip bg-sand" style={{ color: 'var(--nv-ink)', fontWeight: 500 }}>
+                {feature}
+              </span>
+            ))}
           </div>
-          <button type="button" className="btn btn-primary" onClick={handleAdd}>
+        )}
+
+        <div className="d-flex align-items-end justify-content-between gap-3 mt-auto pt-3 border-top border-nv">
+          <div>
+            <p className="small text-muted-nv mb-0">desde</p>
+            <p className="font-heading fs-3 fw-semibold mb-0">{formatCOP(product.price)}</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAdd}
+            className={`btn rounded-pill px-3 d-inline-flex align-items-center gap-2 fw-medium ${
+              added ? 'btn-amber' : 'btn-teal'
+            }`}
+          >
             {added ? (
               <>
-                <Check className="h-4 w-4" /> Agregado
+                <Check size={16} /> Agregado
               </>
             ) : (
               <>
-                <Plus className="h-4 w-4" /> Agregar
+                <Plus size={16} /> Agregar
               </>
             )}
           </button>

@@ -40,24 +40,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-6">
-        <div className="card shadow-sm">
-          <div className="card-body p-4">
-            <h2 className="h4 mb-3">Acceso con magic link</h2>
-            <p className="text-muted">
+    <main className="container-xl" style={{ paddingTop: '7rem', paddingBottom: '4rem' }}>
+      <div className="row justify-content-center">
+        <div className="col-12 col-lg-6">
+          <div className="nv-card p-4 p-md-5">
+            <p className="text-uppercase-xs text-amber mb-2">Acceso</p>
+            <h1 className="font-heading fw-semibold fs-2 mb-2">Acceso con magic link</h1>
+            <p className="text-muted-nv">
               Ingresa tu correo y recibirás un enlace para entrar sin contraseña.
             </p>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="mt-4">
               <div className="mb-3">
-                <label className="form-label" htmlFor="email">
+                <label className="form-label text-uppercase-xs text-muted-nv" htmlFor="email">
                   Correo electrónico
                 </label>
                 <input
                   id="email"
                   type="email"
-                  className="form-control"
+                  className="form-control border-nv"
                   value={email}
                   onChange={(event) => {
                     setEmail(event.target.value);
@@ -72,16 +73,24 @@ export default function LoginPage() {
                 )}
               </div>
 
-              <button type="submit" className="btn btn-primary" disabled={loading || !email.trim()}>
+              <button
+                type="submit"
+                className="btn btn-teal rounded-pill px-4 w-100 fw-medium"
+                disabled={loading || !email.trim()}
+              >
                 {loading ? 'Enviando...' : 'Enviar enlace'}
               </button>
             </form>
 
-            {message && <div className="alert alert-success mt-3">{message}</div>}
-            {error && <div className="alert alert-danger mt-3">{error}</div>}
+            {message && (
+              <div className="mt-3 p-3 rounded-3" style={{ backgroundColor: 'var(--nv-sand)', color: 'var(--nv-ink)' }}>
+                {message}
+              </div>
+            )}
+            {error && <div className="alert alert-danger mt-3 mb-0">{error}</div>}
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

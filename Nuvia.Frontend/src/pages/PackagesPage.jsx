@@ -29,14 +29,14 @@ export default function PackagesPage() {
     <main>
       <CategoryHero
         eyebrow="Paquetes"
-        title="Viajes todo en uno"
-        subtitle="Vuelo, hotel y actividades en paquetes diseñados para vacaciones completas."
+        title="Paquetes de viaje"
+        subtitle="Combina vuelos, hoteles y tours en un solo lugar y ahorra hasta un 30%."
         image={getHeroImage('packages')}
       />
-      <section className="page-section">
-        {loading && <p>Cargando paquetes...</p>}
+      <section className="container-xl py-5">
+        {loading && <p className="text-muted-nv">Cargando paquetes...</p>}
         {error && <p className="text-danger">{error}</p>}
-        <Catalog products={packagesData} showTypeFilter={false} initialSort="relevance" />
+        {!loading && !error && <Catalog products={packagesData} showTypeFilter={false} />}
       </section>
     </main>
   );

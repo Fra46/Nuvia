@@ -192,17 +192,25 @@ builder.Services
             {
                 if (context.Exception is SecurityTokenExpiredException)
                 {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    context.Response.ContentType = "application/json";
-                    var payload = JsonSerializer.Serialize(new
+                    if (!context.Response.HasStarted)
                     {
-                        status = StatusCodes.Status401Unauthorized,
-                        code = "token_expired",
-                        error = "Tu sesión ha expirado. Inicia sesión nuevamente."
-                    });
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+                        var payload = JsonSerializer.Serialize(new
+                        {
+                            status = StatusCodes.Status401Unauthorized,
+                            code = "token_expired",
+                            error = "Tu sesión ha expirado. Inicia sesión nuevamente."
+                        });
 
-                    await context.Response.WriteAsync(payload);
-                    context.Response.Headers["WWW-Authenticate"] = "Bearer error=\"invalid_token\", error_description=\"token_expired\"";
+                        // Set header before writing body to avoid "headers are read-only" errors
+                        context.Response.Headers["WWW-Authenticate"] = "Bearer error=\"invalid_token\", error_description=\"token_expired\"";
+                        await context.Response.WriteAsync(payload);
+                    }
+                    else
+                    {
+                        // Response already started; nothing we can safely write here. Let pipeline continue.
+                    }
                 }
             },
             OnChallenge = async context =>

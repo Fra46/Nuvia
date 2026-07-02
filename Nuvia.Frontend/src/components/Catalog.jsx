@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
+import { RotateCcw, Search } from 'lucide-react';
 import ProductCard from './ProductCard';
 import { destinations, categoryLabels } from '../data/products';
 
@@ -19,111 +19,163 @@ export default function Catalog({ products, showTypeFilter = true, initialSort =
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const dest = destination.toLowerCase();
-    const filteredProducts = products.filter((product) => {
+    const result = products.filter((p) => {
       const matchesQuery =
         !q ||
-        product.name.toLowerCase().includes(q) ||
-        product.description.toLowerCase().includes(q) ||
-        product.location.toLowerCase().includes(q);
-      const matchesType = !type || product.category === type;
-      const matchesDestination = !dest || product.location.toLowerCase().includes(dest);
-      return matchesQuery && matchesType && matchesDestination;
+        p.name.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        p.location.toLowerCase().includes(q);
+      const matchesType = !type || p.category === type;
+      const matchesDest = !dest || p.location.toLowerCase().includes(dest);
+      return matchesQuery && matchesType && matchesDest;
     });
 
     switch (sort) {
       case 'price-asc':
-        return [...filteredProducts].sort((a, b) => a.price - b.price);
+        return [...result].sort((a, b) => a.price - b.price);
       case 'price-desc':
-        return [...filteredProducts].sort((a, b) => b.price - a.price);
+        return [...result].sort((a, b) => b.price - a.price);
       case 'rating':
-        return [...filteredProducts].sort((a, b) => b.rating - a.rating);
+        return [...result].sort((a, b) => b.rating - a.rating);
       default:
-        return filteredProducts;
+        return result;
     }
   }, [products, query, type, destination, sort]);
 
   const types = useMemo(
-    () => Array.from(new Set(products.map((product) => product.category))),
+    () => Array.from(new Set(products.map((p) => p.category))),
     [products],
   );
 
-  const clear = () => {
+  function clear() {
     setQuery('');
     setType('');
     setDestination('');
     setSort(initialSort);
-  };
+  }
 
   return (
-    <div className="catalog">
-      <div className="catalog__filters">
-        <div className="catalog__field">
-          <label htmlFor="cat-search">Buscar</label>
-          <div className="catalog__search">
-            <Search className="icon" />
-            <input
-              id="cat-search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Destino, hotel, tour..."
-            />
+    <div>
+      <div className="nv-card p-3 p-md-4" style={{ borderRadius: '1.5rem' }}>
+        <div className="row g-3 align-items-end">
+          <div className="col-12 col-md-4">
+            <label htmlFor="cat-search" className="form-label text-uppercase-xs text-muted-nv">
+              Buscar
+            </label>
+            <div className="input-group">
+              <span className="input-group-text bg-white border-nv">
+                <Search size={16} className="text-muted-nv" />
+              </span>
+              <input
+                id="cat-search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Destino, hotel, tour..."
+                className="form-control border-nv"
+              />
+            </div>
           </div>
-        </div>
 
-        {showTypeFilter && (
-          <div className="catalog__field">
-            <label htmlFor="cat-type">Tipo</label>
-            <select id="cat-type" value={type} onChange={(event) => setType(event.target.value)}>
-              <option value="">Todos</option>
-              {types.map((category) => (
-                <option key={category} value={category}>
-                  {categoryLabels[category]}
+          {showTypeFilter && (
+            <div className="col-6 col-md-2">
+              <label htmlFor="cat-type" className="form-label text-uppercase-xs text-muted-nv">
+                Tipo
+              </label>
+              <select
+                id="cat-type"
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="form-select border-nv"
+              >
+                <option value="">Todos</option>
+                {types.map((t) => (
+                  <option key={t} value={t}>
+                    {categoryLabels[t]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className={showTypeFilter ? 'col-6 col-md-3' : 'col-12 col-md-4'}>
+            <label htmlFor="cat-dest" className="form-label text-uppercase-xs text-muted-nv">
+              Destino
+            </label>
+            <select
+              id="cat-dest"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              className="form-select border-nv"
+            >
+              <option value="">Todos los destinos</option>
+              {destinations.map((d) => (
+                <option key={d} value={d}>
+                  {d}
                 </option>
               ))}
             </select>
           </div>
-        )}
 
-        <div className="catalog__field">
-          <label htmlFor="cat-dest">Destino</label>
-          <select id="cat-dest" value={destination} onChange={(event) => setDestination(event.target.value)}>
-            <option value="">Todos los destinos</option>
-            {destinations.map((dest) => (
-              <option key={dest} value={dest}>
-                {dest}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="catalog__field">
-          <label htmlFor="cat-sort">Ordenar</label>
-          <div className="catalog__select-with-icon">
-            <SlidersHorizontal className="icon" />
-            <select id="cat-sort" value={sort} onChange={(event) => setSort(event.target.value)}>
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+          <div className={showTypeFilter ? 'col-8 col-md-2' : 'col-8 col-md-3'}>
+            <label htmlFor="cat-sort" className="form-label text-uppercase-xs text-muted-nv">
+              Ordenar
+            </label>
+            <select
+              id="cat-sort"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="form-select border-nv"
+            >
+              {sortOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
                 </option>
               ))}
             </select>
           </div>
+
+          <div className="col-4 col-md-1">
+            <label className="form-label text-uppercase-xs text-muted-nv d-none d-md-block">&nbsp;</label>
+            <button
+              type="button"
+              onClick={clear}
+              className="btn btn-light border-nv w-100 d-inline-flex align-items-center justify-content-center gap-2"
+              aria-label="Limpiar filtros"
+            >
+              <RotateCcw size={16} />
+              <span className="d-md-none">Limpiar</span>
+            </button>
+          </div>
         </div>
-
-        <button type="button" className="catalog__clear" onClick={clear}>
-          <RotateCcw className="icon" /> Limpiar filtros
-        </button>
       </div>
 
-      <div className="catalog__summary">
-        <p>{filtered.length} {filtered.length === 1 ? 'resultado' : 'resultados'}</p>
+      <div className="d-flex align-items-center justify-content-between mt-4">
+        <p className="small text-muted-nv mb-0">
+          <span className="fw-semibold" style={{ color: 'var(--nv-ink)' }}>
+            {filtered.length}
+          </span>{' '}
+          {filtered.length === 1 ? 'resultado' : 'resultados'}
+        </p>
       </div>
 
-      <div className="catalog__grid">
-        {filtered.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {filtered.length > 0 ? (
+        <div className="row g-4 mt-1">
+          {filtered.map((p) => (
+            <div key={p.id} className="col-12 col-sm-6 col-lg-4">
+              <ProductCard product={p} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="nv-card d-flex flex-column align-items-center justify-content-center text-center py-5 mt-4">
+          <Search size={40} className="text-muted-nv" />
+          <h3 className="font-heading fs-4 fw-semibold mt-3">Sin resultados</h3>
+          <p className="small text-muted-nv">Prueba ajustando tu búsqueda o filtros.</p>
+          <button type="button" onClick={clear} className="btn btn-teal rounded-pill px-4 mt-2">
+            Limpiar filtros
+          </button>
+        </div>
+      )}
     </div>
   );
 }
