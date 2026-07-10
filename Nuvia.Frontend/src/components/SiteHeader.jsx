@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Menu, ShoppingBag, X } from 'lucide-react';
+import { Cloud, Menu, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -36,10 +36,7 @@ export default function SiteHeader() {
         <div className="d-flex align-items-center justify-content-between gap-3" style={{ height: '4.5rem' }}>
           <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none" aria-label="Nuvia inicio">
             <span className="brand-mark">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="M2 12c4-6 16-6 20 0-4 6-16 6-20 0Z" strokeLinejoin="round" />
-                <circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none" />
-              </svg>
+              <Cloud size={20} fill="currentColor" strokeWidth={1.5} />
             </span>
             <span className="font-heading fw-semibold fs-3 lh-1" style={{ color: 'var(--nv-ink)' }}>
               Nuvia

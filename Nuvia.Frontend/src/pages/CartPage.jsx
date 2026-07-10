@@ -1,11 +1,49 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Loader2, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { categoryLabels, formatCOP } from '../data/productHelpers';
+import bookingsService from '../services/bookingsService';
+import paymentsService from '../services/paymentsService';
 
 export default function CartPage() {
   const { items, subtotal, iva, total, setQuantity, remove, clear, loading } = useCart();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(null);
+
+  const handleCheckout = async () => {
+    if (!items.length || checkingOut) return;
+
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    setCheckoutError(null);
+    setCheckingOut(true);
+
+    try {
+      // 1) Convierte el carrito del usuario en una reserva (Booking) en el backend.
+      const booking = await bookingsService.checkoutFromCart();
+
+      // 2) Crea la sesión de checkout de Stripe para esa reserva.
+      const { url } = await paymentsService.createCheckoutSession(booking.id);
+
+      if (!url) {
+        throw new Error('Stripe no devolvió una URL de pago.');
+      }
+
+      // 3) Redirige al Checkout hospedado por Stripe.
+      window.location.href = url;
+    } catch (err) {
+      setCheckoutError(err?.message || 'No se pudo iniciar el pago. Intenta de nuevo.');
+      setCheckingOut(false);
+    }
+  };
 
   return (
     <main className="container-xl pb-5" style={{ paddingTop: '7rem' }}>
@@ -62,7 +100,7 @@ export default function CartPage() {
                         <button
                           type="button"
                           onClick={() => setQuantity(item.id, item.quantity - 1)}
-                          className="btn btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0"
+                          className="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0"
                           style={{ width: '2.25rem', height: '2.25rem' }}
                           aria-label="Disminuir cantidad"
                         >
@@ -74,7 +112,7 @@ export default function CartPage() {
                         <button
                           type="button"
                           onClick={() => setQuantity(item.id, item.quantity + 1)}
-                          className="btn btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0"
+                          className="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0"
                           style={{ width: '2.25rem', height: '2.25rem' }}
                           aria-label="Aumentar cantidad"
                         >
@@ -86,7 +124,7 @@ export default function CartPage() {
                         <button
                           type="button"
                           onClick={() => remove(item.id)}
-                          className="btn btn-sm text-muted-nv rounded-circle d-inline-flex align-items-center justify-content-center p-0"
+                          className="btn btn-light btn-sm text-muted-nv rounded-circle d-inline-flex align-items-center justify-content-center p-0"
                           style={{ width: '2.25rem', height: '2.25rem' }}
                           aria-label="Eliminar"
                         >
@@ -121,10 +159,32 @@ export default function CartPage() {
                   <dd className="font-heading fs-5 fw-semibold text-teal mb-0">{formatCOP(total)}</dd>
                 </div>
               </dl>
-              <button type="button" className="btn btn-teal rounded-pill w-100 py-2 mt-4">
-                Proceder al pago
+
+              {!isAuthenticated && (
+                <p className="small mt-3 mb-0 p-3 rounded-3" style={{ backgroundColor: 'var(--nv-sand)', color: 'var(--nv-ink)' }}>
+                  Debes iniciar sesión para completar el pago.
+                </p>
+              )}
+
+              {checkoutError && (
+                <div className="alert alert-danger small mt-3 mb-0">{checkoutError}</div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleCheckout}
+                disabled={checkingOut}
+                className="btn btn-teal rounded-pill w-100 py-2 mt-4 d-inline-flex align-items-center justify-content-center gap-2"
+              >
+                {checkingOut ? (
+                  <>
+                    <Loader2 size={18} className="spin" /> Redirigiendo a Stripe...
+                  </>
+                ) : (
+                  'Proceder al pago'
+                )}
               </button>
-              <p className="text-center small text-muted-nv mt-3 mb-0">Pago seguro · Cancelación flexible</p>
+              <p className="text-center small text-muted-nv mt-3 mb-0">Pago seguro con Stripe · Cancelación flexible</p>
             </aside>
           </div>
         </div>

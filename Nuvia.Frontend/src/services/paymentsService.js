@@ -3,10 +3,16 @@ import api from './api';
 const ENDPOINT = '/payments';
 
 /**
- * Servicio para gestionar pagos
+ * Servicio para gestionar pagos (Stripe)
+ * Refleja exactamente los endpoints expuestos por PaymentsController:
+ *   GET  /payments            (admin/agent)
+ *   GET  /payments/{id}       (admin/agent)
+ *   GET  /payments/me         (usuario autenticado)
+ *   GET  /payments/me/{id}    (usuario autenticado)
+ *   POST /payments/create-checkout-session (usuario autenticado)
  */
 const paymentsService = {
-  // Obtener todos los pagos
+  // Admin/Agent: todos los pagos
   getAll: async (params = {}) => {
     try {
       const response = await api.get(ENDPOINT, { params });
@@ -16,7 +22,7 @@ const paymentsService = {
     }
   },
 
-  // Obtener pago por ID
+  // Admin/Agent: un pago por id
   getById: async (id) => {
     try {
       const response = await api.getById(ENDPOINT, id);
@@ -26,40 +32,31 @@ const paymentsService = {
     }
   },
 
-  // Crear nuevo pago
-  create: async (paymentData) => {
+  // Usuario autenticado: todos mis pagos
+  getMyPayments: async () => {
     try {
-      const response = await api.post(ENDPOINT, paymentData);
+      const response = await api.get(`${ENDPOINT}/me`);
       return response.data;
     } catch (error) {
       throw api.handleError(error);
     }
   },
 
-  // Actualizar pago
-  update: async (id, paymentData) => {
+  // Usuario autenticado: uno de mis pagos por id
+  getMyPayment: async (id) => {
     try {
-      const response = await api.put(ENDPOINT, id, paymentData);
+      const response = await api.get(`${ENDPOINT}/me/${id}`);
       return response.data;
     } catch (error) {
       throw api.handleError(error);
     }
   },
 
-  // Eliminar pago
-  delete: async (id) => {
+  // Crea la sesión de checkout de Stripe para una reserva (booking) ya creada.
+  // Devuelve { paymentId, url } -> hay que redirigir el navegador a `url`.
+  createCheckoutSession: async (bookingId) => {
     try {
-      const response = await api.delete(ENDPOINT, id);
-      return response.data;
-    } catch (error) {
-      throw api.handleError(error);
-    }
-  },
-
-  // Crear sesión de checkout (Stripe)
-  createCheckoutSession: async (sessionData) => {
-    try {
-      const response = await api.post(`${ENDPOINT}/checkout-session`, sessionData);
+      const response = await api.post(`${ENDPOINT}/create-checkout-session`, { bookingId });
       return response.data;
     } catch (error) {
       throw api.handleError(error);

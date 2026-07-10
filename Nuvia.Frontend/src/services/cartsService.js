@@ -33,18 +33,21 @@ const cartsService = {
     }
   },
 
+  // OJO: la URL ya viene completa (incluye el itemId), por eso usamos putFull
+  // en vez de put (que agregaría un segundo id y dejaría el body vacío).
   updateItem: async (itemId, itemData) => {
     try {
-      const response = await api.put(`${ENDPOINT}/update/${itemId}`, itemData);
+      const response = await api.putFull(`${ENDPOINT}/update/${itemId}`, itemData);
       return response.data;
     } catch (error) {
       throw api.handleError(error);
     }
   },
 
+  // Igual aquí: usamos deleteFull porque la URL ya incluye el itemId.
   removeItem: async (itemId) => {
     try {
-      const response = await api.delete(`${ENDPOINT}/remove/${itemId}`);
+      const response = await api.deleteFull(`${ENDPOINT}/remove/${itemId}`);
       return response.data;
     } catch (error) {
       throw api.handleError(error);
@@ -53,7 +56,7 @@ const cartsService = {
 
   clear: async () => {
     try {
-      const response = await api.delete(`${ENDPOINT}/clear`);
+      const response = await api.deleteFull(`${ENDPOINT}/clear`);
       return response.data;
     } catch (error) {
       throw api.handleError(error);

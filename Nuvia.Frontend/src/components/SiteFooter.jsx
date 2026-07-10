@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Cloud, Mail, MapPin, Phone } from 'lucide-react';
 
 const socials = [
   {
@@ -42,10 +42,7 @@ export default function SiteFooter() {
                 className="icon-circle"
                 style={{ width: '2.25rem', height: '2.25rem', backgroundColor: 'rgba(255,255,255,0.15)' }}
               >
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path d="M2 12c4-6 16-6 20 0-4 6-16 6-20 0Z" strokeLinejoin="round" />
-                  <circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none" />
-                </svg>
+                <Cloud size={20} fill="currentColor" strokeWidth={1.5} />
               </span>
               <span className="font-heading fw-semibold fs-3">Nuvia</span>
             </div>

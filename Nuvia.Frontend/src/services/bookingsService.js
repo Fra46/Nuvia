@@ -2,11 +2,7 @@ import api from './api';
 
 const ENDPOINT = '/bookings';
 
-/**
- * Servicio para gestionar reservas
- */
 const bookingsService = {
-  // Obtener todas las reservas
   getAll: async (params = {}) => {
     try {
       const response = await api.get(ENDPOINT, { params });
@@ -16,7 +12,6 @@ const bookingsService = {
     }
   },
 
-  // Obtener reserva por ID
   getById: async (id) => {
     try {
       const response = await api.getById(ENDPOINT, id);
@@ -26,30 +21,38 @@ const bookingsService = {
     }
   },
 
-  // Crear nueva reserva
-  create: async (bookingData) => {
+  create: async (data) => {
     try {
-      const response = await api.post(ENDPOINT, bookingData);
+      const response = await api.post(ENDPOINT, data);
       return response.data;
     } catch (error) {
       throw api.handleError(error);
     }
   },
 
-  // Actualizar reserva
-  update: async (id, bookingData) => {
+  update: async (id, data) => {
     try {
-      const response = await api.put(ENDPOINT, id, bookingData);
+      const response = await api.put(ENDPOINT, id, data);
       return response.data;
     } catch (error) {
       throw api.handleError(error);
     }
   },
 
-  // Eliminar reserva
   delete: async (id) => {
     try {
       const response = await api.delete(ENDPOINT, id);
+      return response.data;
+    } catch (error) {
+      throw api.handleError(error);
+    }
+  },
+
+  // Crea una reserva (Booking) a partir del carrito del usuario autenticado.
+  // Backend: POST /api/bookings/checkout-from-cart -> BookingDTO
+  checkoutFromCart: async () => {
+    try {
+      const response = await api.post(`${ENDPOINT}/checkout-from-cart`, {});
       return response.data;
     } catch (error) {
       throw api.handleError(error);

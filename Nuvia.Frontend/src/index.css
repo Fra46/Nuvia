@@ -284,3 +284,11 @@ img {
 .footer-link:hover {
   color: #fff !important;
 }
+
+.spin {
+  animation: nv-spin 0.9s linear infinite;
+}
+@keyframes nv-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
