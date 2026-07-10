@@ -37,6 +37,13 @@ namespace Nuvia.Middleware
 
         private Task WriteErrorResponseAsync(HttpContext context, Exception ex)
         {
+            // Si la respuesta ya ha comenzado, no podemos hacer nada
+            if (context.Response.HasStarted)
+            {
+                _logger.LogError(ex, "La respuesta ya ha comenzado, no se puede escribir el error");
+                return Task.CompletedTask;
+            }
+
             context.Response.Clear();
             int statusCode;
             string code;

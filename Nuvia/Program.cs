@@ -342,8 +342,9 @@ var app = builder.Build();
 
 NuviaSeeder.Seed(app);
 
-app.UseMiddleware<Nuvia.Middleware.InputSanitizationMiddleware>();
+// Error handling middleware MUST be first
 app.UseMiddleware<Nuvia.Middleware.ErrorHandlingMiddleware>();
+app.UseMiddleware<Nuvia.Middleware.InputSanitizationMiddleware>();
 
 app.UseCors("NuviaPolicy");
 
