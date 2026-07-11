@@ -13,9 +13,19 @@ namespace Nuvia.Data
 
             context.Database.Migrate();
 
-            const string adminEmail = "anddanmairubzapcastorgut@gmail.com";
+            if (context.Users.Any())
+            {
+                // Ya existe una base de datos con usuarios; no semillamos para no interferir.
+                return;
+            }
 
-            if (!context.Users.Any(u => u.Email == adminEmail))
+            var adminEmails = new[]
+            {
+                "anddanmairubzapcastorgut@gmail.com",
+                "andresfzapatamar@gmail.com"
+            };
+
+            foreach (var adminEmail in adminEmails)
             {
                 var admin = new User
                 {
@@ -28,8 +38,9 @@ namespace Nuvia.Data
                 };
 
                 context.Users.Add(admin);
-                context.SaveChanges();
             }
+
+            context.SaveChanges();
         }
     }
 }

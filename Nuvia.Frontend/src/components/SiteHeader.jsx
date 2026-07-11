@@ -10,6 +10,7 @@ const navItems = [
   { href: '/hotels', label: 'Hoteles' },
   { href: '/tours', label: 'Tours' },
   { href: '/packages', label: 'Paquetes' },
+  { href: '/admin', label: 'Admin' },
 ];
 
 export default function SiteHeader() {

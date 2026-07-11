@@ -54,7 +54,7 @@ a {
   color: inherit;
 }
 
-button, input, select {
+button, input, select, textarea {
   font: inherit;
 }
 
@@ -283,6 +283,46 @@ img {
 
 .footer-link:hover {
   color: #fff !important;
+}
+
+.form-control,
+.form-select,
+.form-check-input,
+textarea {
+  border-color: var(--nv-border);
+  border-radius: 0.9rem;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus,
+textarea:focus {
+  border-color: var(--nv-teal);
+  box-shadow: 0 0 0 0.2rem rgba(29, 106, 114, 0.16);
+}
+
+.table thead th {
+  border-bottom: 1px solid var(--nv-border);
+  color: var(--nv-teal);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(29, 106, 114, 0.04);
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  background-color: rgba(29, 106, 114, 0.1);
+  color: var(--nv-teal);
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .spin {

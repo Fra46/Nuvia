@@ -14,6 +14,8 @@ import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PaymentCancelPage from './pages/PaymentCancelPage';
 import LoginPage from './pages/LoginPage';
 import MagicLoginPage from './pages/MagicLoginPage';
+import AdminPage from './pages/AdminPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
   return (
@@ -33,6 +35,15 @@ export default function App() {
               <Route path="/payment-cancel" element={<PaymentCancelPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/auth/magic-login" element={<MagicLoginPage />} />
+
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={["Admin"]}>
+                    <AdminPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
