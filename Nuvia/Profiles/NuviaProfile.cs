@@ -32,9 +32,14 @@ namespace Nuvia.Profiles
             CreateMap<HotelUpdateDTO, Hotel>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
-            CreateMap<Tour, TourDTO>().ReverseMap();
-            CreateMap<TourCreateDTO, Tour>();
-            CreateMap<TourUpdateDTO, Tour>();
+            CreateMap<TourPricing, TourPricingDTO>().ReverseMap();
+            CreateMap<Tour, TourDTO>()
+                .ForMember(dest => dest.Rates, opt => opt.MapFrom(src => src.Rates));
+            CreateMap<TourDTO, Tour>();
+            CreateMap<TourCreateDTO, Tour>()
+                .ForMember(dest => dest.Rates, opt => opt.Ignore());
+            CreateMap<TourUpdateDTO, Tour>()
+                .ForMember(dest => dest.Rates, opt => opt.Ignore());
 
             CreateMap<Package, PackageDTO>().ReverseMap();
             CreateMap<PackageCreateDTO, Package>()

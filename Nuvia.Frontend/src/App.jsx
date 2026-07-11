@@ -15,6 +15,9 @@ import PaymentCancelPage from './pages/PaymentCancelPage';
 import LoginPage from './pages/LoginPage';
 import MagicLoginPage from './pages/MagicLoginPage';
 import AdminPage from './pages/AdminPage';
+import ReservationsPage from './pages/ReservationsPage';
+import BookingDetailsPage from './pages/BookingDetailsPage';
+import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -41,6 +44,30 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["Admin"]}>
                     <AdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reservations"
+                element={
+                  <ProtectedRoute>
+                    <ReservationsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/bookings/:id"
+                element={
+                  <ProtectedRoute>
+                    <BookingDetailsPage />
                   </ProtectedRoute>
                 }
               />

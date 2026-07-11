@@ -12,5 +12,6 @@
         public int AvailableSlots { get; set; }
 
         public bool IsActive { get; set; }
+        public IEnumerable<TourPricingDTO>? Rates { get; set; }
     }
 }

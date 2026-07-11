@@ -281,6 +281,32 @@ img {
   border-radius: 999px;
 }
 
+/* User avatar button styles */
+.user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+}
+.user-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--nv-cream);
+  border: 1px solid var(--nv-border);
+}
+.user-avatar svg { color: var(--nv-ink); }
+
+.dropdown-menu.show.dropdown-user {
+  min-width: 13rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
 .footer-link:hover {
   color: #fff !important;
 }

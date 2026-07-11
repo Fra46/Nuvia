@@ -18,5 +18,6 @@
         // Navegación
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         public ICollection<Cart> CartItems { get; set; } = new List<Cart>();
+        public ICollection<TourPricing> Rates { get; set; } = new List<TourPricing>();
     }
 }

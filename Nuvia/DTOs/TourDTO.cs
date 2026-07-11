@@ -13,6 +13,8 @@
         public decimal PricePerPerson { get; set; }
         public int AvailableSlots { get; set; }
 
+        public IEnumerable<TourPricingDTO>? Rates { get; set; }
+
         public bool IsActive { get; set; }
     }
 }

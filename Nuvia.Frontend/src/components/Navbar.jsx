@@ -55,15 +55,15 @@ export default function Navbar() {
               <>
                 <li className="nav-item">
                   <span className="navbar-text me-3">
-                    Hola, {user.email || 'Usuario'}
-                  </span>
+                      Hola, {user.email || 'Usuario'}
+                    </span>
                 </li>
                 <li className="nav-item">
                   <button
                     className="btn btn-sm btn-danger"
                     onClick={handleLogout}
                   >
-                    Logout
+                      Cerrar Sesión
                   </button>
                 </li>
               </>
@@ -71,7 +71,7 @@ export default function Navbar() {
               <>
                 <li className="nav-item">
                   <a className="nav-link" href="/login">
-                    Login
+                    Iniciar Sesión
                   </a>
                 </li>
                 <li className="nav-item">

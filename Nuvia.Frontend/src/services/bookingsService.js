@@ -3,18 +3,30 @@ import api from './api';
 const ENDPOINT = '/bookings';
 
 const bookingsService = {
-  getAll: async (params = {}) => {
+  // Obtener reservas del usuario actual
+  getMyBookings: async () => {
     try {
-      const response = await api.get(ENDPOINT, { params });
+      const response = await api.get(`${ENDPOINT}/me`);
       return response.data;
-    } catch (error) {
-      throw api.handleError(error);
+    } catch (err) {
+      throw api.handleError(err);
     }
   },
 
-  getById: async (id) => {
+  // Obtener reserva por id
+  getBooking: async (id) => {
     try {
       const response = await api.getById(ENDPOINT, id);
+      return response.data;
+    } catch (err) {
+      throw api.handleError(err);
+    }
+  },
+
+  // Métodos administrativos / genéricos
+  getAll: async (params = {}) => {
+    try {
+      const response = await api.get(ENDPOINT, { params });
       return response.data;
     } catch (error) {
       throw api.handleError(error);
@@ -48,8 +60,6 @@ const bookingsService = {
     }
   },
 
-  // Crea una reserva (Booking) a partir del carrito del usuario autenticado.
-  // Backend: POST /api/bookings/checkout-from-cart -> BookingDTO
   checkoutFromCart: async () => {
     try {
       const response = await api.post(`${ENDPOINT}/checkout-from-cart`, {});

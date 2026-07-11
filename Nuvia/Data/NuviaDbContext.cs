@@ -13,6 +13,7 @@ namespace Nuvia.Data
         public DbSet<Hotel> Hotels { get; set; }
         public DbSet<Flight> Flights { get; set; }
         public DbSet<Tour> Tours { get; set; }
+        public DbSet<TourPricing> TourPricings { get; set; }
         public DbSet<Package> Packages { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Payment> Payments { get; set; }
@@ -51,6 +52,16 @@ namespace Nuvia.Data
             modelBuilder.Entity<Tour>()
                 .Property(t => t.PricePerPerson)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<TourPricing>()
+                .Property(tp => tp.TotalPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<TourPricing>()
+                .HasOne(tp => tp.Tour)
+                .WithMany(t => t.Rates)
+                .HasForeignKey(tp => tp.TourId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
         }

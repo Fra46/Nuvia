@@ -71,7 +71,39 @@ namespace Nuvia.Services.Carts
                     var tour = await _context.Tours.FindAsync(dto.ItemId);
                     if (tour == null)
                         throw new NotFoundException($"El tour {dto.ItemId} no existe.");
-                    unitPrice = tour.PricePerPerson;
+
+                    // Determinar cantidad total si ya existe en el carrito
+                    var desiredQuantity = dto.Quantity > 0 ? dto.Quantity : 1;
+                    if (existing != null)
+                    {
+                        desiredQuantity = existing.Quantity + desiredQuantity;
+                    }
+
+                    // Buscar tarifa que cubra la cantidad deseada
+                    var rate = await _context.TourPricings
+                        .Where(tp => tp.TourId == dto.ItemId && tp.MinPeople <= desiredQuantity && tp.MaxPeople >= desiredQuantity)
+                        .OrderBy(tp => tp.MinPeople)
+                        .FirstOrDefaultAsync();
+
+                    if (rate == null)
+                    {
+                        if (tour.PricePerPerson > 0)
+                        {
+                            unitPrice = tour.PricePerPerson;
+                            itemName = tour.Name;
+                            break;
+                        }
+
+                        throw new ValidationException(
+                            "No hay tarifa disponible para esa cantidad de personas.",
+                            new Dictionary<string, string[]>
+                            {
+                                ["quantity"] = new[] { "No existe una tarifa para el tamaño de grupo solicitado." }
+                            });
+                    }
+
+                    // Unit price stored as price per person for display and calculations
+                    unitPrice = rate.TotalPrice / desiredQuantity;
                     itemName = tour.Name;
                     break;
 
@@ -111,8 +143,51 @@ namespace Nuvia.Services.Carts
             }
             else
             {
-                existing.Quantity += dto.Quantity > 0 ? dto.Quantity : 1;
-                existing.TotalPrice = existing.UnitPrice * existing.Quantity;
+                var addQty = dto.Quantity > 0 ? dto.Quantity : 1;
+                if (dto.ItemType == CartItemType.Tour)
+                {
+                    var newQty = existing.Quantity + addQty;
+                    var rate = await _context.TourPricings
+                        .Where(tp => tp.TourId == dto.ItemId && tp.MinPeople <= newQty && tp.MaxPeople >= newQty)
+                        .OrderBy(tp => tp.MinPeople)
+                        .FirstOrDefaultAsync();
+
+                    if (rate == null)
+                    {
+                        var tour = await _context.Tours.FindAsync(dto.ItemId);
+                        if (tour == null)
+                        {
+                            throw new NotFoundException($"El tour {dto.ItemId} no existe.");
+                        }
+
+                        if (tour.PricePerPerson > 0)
+                        {
+                            existing.Quantity = newQty;
+                            existing.UnitPrice = tour.PricePerPerson;
+                            existing.TotalPrice = tour.PricePerPerson * newQty;
+                        }
+                        else
+                        {
+                            throw new ValidationException(
+                                "No hay tarifa disponible para esa cantidad de personas.",
+                                new Dictionary<string, string[]>
+                                {
+                                    ["quantity"] = new[] { "No existe una tarifa para el tamaño de grupo solicitado." }
+                                });
+                        }
+                    }
+                    else
+                    {
+                        existing.Quantity = newQty;
+                        existing.UnitPrice = rate.TotalPrice / newQty;
+                        existing.TotalPrice = rate.TotalPrice;
+                    }
+                }
+                else
+                {
+                    existing.Quantity += addQty;
+                    existing.TotalPrice = existing.UnitPrice * existing.Quantity;
+                }
 
                 await _context.SaveChangesAsync();
 

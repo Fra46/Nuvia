@@ -58,8 +58,13 @@ export default function ProductCard({ product }) {
 
         <div className="d-flex align-items-end justify-content-between gap-3 mt-auto pt-3 border-top border-nv">
           <div>
-            <p className="small text-muted-nv mb-0">desde</p>
+            <p className="small text-muted-nv mb-0">
+              {product.priceMax && product.priceMax > product.price ? 'Desde' : 'Precio'}
+            </p>
             <p className="font-heading fs-3 fw-semibold mb-0">{formatCOP(product.price)}</p>
+            {product.priceMax && product.priceMax > product.price && (
+              <p className="small text-muted-nv mb-0">hasta {formatCOP(product.priceMax)}</p>
+            )}
           </div>
           <button
             type="button"

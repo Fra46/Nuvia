@@ -10,5 +10,6 @@
         public int DurationHours { get; set; }
         public decimal PricePerPerson { get; set; }
         public int AvailableSlots { get; set; }
+        public IEnumerable<TourPricingDTO>? Rates { get; set; }
     }
 }

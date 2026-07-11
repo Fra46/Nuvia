@@ -330,6 +330,39 @@ namespace Nuvia.Migrations
                     b.ToTable("Tours", (string)null);
                 });
 
+            modelBuilder.Entity("Nuvia.Models.TourPricing", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("TourId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinPeople")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxPeople")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TourId");
+
+                    b.ToTable("TourPricings", (string)null);
+                });
+
             modelBuilder.Entity("Nuvia.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -408,6 +441,16 @@ namespace Nuvia.Migrations
                     b.Navigation("Tour");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Nuvia.Models.TourPricing", b =>
+                {
+                    b.HasOne("Nuvia.Models.Tour", "Tour")
+                        .WithMany("Rates")
+                        .HasForeignKey("TourId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Tour");
                 });
 
             modelBuilder.Entity("Nuvia.Models.Cart", b =>

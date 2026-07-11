@@ -26,6 +26,16 @@ const usersService = {
     }
   },
 
+  // Obtener mi perfil
+  getMe: async () => {
+    try {
+      const response = await api.get(`${ENDPOINT}/me`);
+      return response.data;
+    } catch (error) {
+      throw api.handleError(error);
+    }
+  },
+
   // Crear nuevo usuario
   create: async (userData) => {
     try {

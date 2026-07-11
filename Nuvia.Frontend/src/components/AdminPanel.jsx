@@ -23,7 +23,7 @@ const emptyForms = {
     name: '', city: '', country: '', address: '', stars: '', pricePerNight: '', isActive: true,
   },
   tours: {
-    name: '', city: '', country: '', description: '', durationHours: '', pricePerPerson: '', availableSlots: '', isActive: true,
+    name: '', city: '', country: '', description: '', durationHours: '', pricePerPerson: '', availableSlots: '', isActive: true, rates: [],
   },
   packages: {
     title: '', destination: '', description: '', nights: '', totalPrice: '', isActive: true,
@@ -101,7 +101,9 @@ export default function AdminPanel() {
         stars: Number(form.stars),
         pricePerNight: Number(form.pricePerNight),
         durationHours: Number(form.durationHours),
-        pricePerPerson: Number(form.pricePerPerson),
+        // pricePerPerson kept for backward compatibility, primary pricing comes from `rates`
+        pricePerPerson: Number(form.pricePerPerson || 0),
+        rates: (form.rates || []).map(r => ({ minPeople: Number(r.minPeople), maxPeople: Number(r.maxPeople), totalPrice: Number(r.totalPrice) })),
         availableSlots: Number(form.availableSlots),
         nights: Number(form.nights),
         totalPrice: Number(form.totalPrice),
@@ -141,6 +143,7 @@ export default function AdminPanel() {
       availableSeats: item.availableSeats ?? '',
       pricePerNight: item.pricePerNight ?? '',
       pricePerPerson: item.pricePerPerson ?? '',
+      rates: item.rates ?? [],
       totalPrice: item.totalPrice ?? '',
       nights: item.nights ?? '',
       stars: item.stars ?? '',
@@ -199,7 +202,38 @@ export default function AdminPanel() {
             <div className="col-12 col-md-6"><label className="form-label">País</label><input className="form-control" value={form.country || ''} onChange={(e) => setForm({ ...form, country: e.target.value })} /></div>
             <div className="col-12 col-md-6"><label className="form-label">Duración (horas)</label><input type="number" className="form-control" value={form.durationHours || ''} onChange={(e) => setForm({ ...form, durationHours: e.target.value })} /></div>
             <div className="col-12"><label className="form-label">Descripción</label><textarea className="form-control" rows="3" value={form.description || ''} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-            <div className="col-12 col-md-6"><label className="form-label">Precio por persona</label><input type="number" className="form-control" value={form.pricePerPerson || ''} onChange={(e) => setForm({ ...form, pricePerPerson: e.target.value })} /></div>
+            <div className="col-12">
+              <label className="form-label">Tarifas por cantidad de personas</label>
+              <div className="table-responsive">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Min Personas</th>
+                      <th>Max Personas</th>
+                      <th>Precio total</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(form.rates || []).map((r, idx) => (
+                      <tr key={idx}>
+                        <td><input type="number" className="form-control" value={r.minPeople} onChange={(e) => {
+                          const next = [...(form.rates || [])]; next[idx] = { ...next[idx], minPeople: e.target.value }; setForm({ ...form, rates: next });
+                        }} /></td>
+                        <td><input type="number" className="form-control" value={r.maxPeople} onChange={(e) => {
+                          const next = [...(form.rates || [])]; next[idx] = { ...next[idx], maxPeople: e.target.value }; setForm({ ...form, rates: next });
+                        }} /></td>
+                        <td><input type="number" className="form-control" value={r.totalPrice} onChange={(e) => {
+                          const next = [...(form.rates || [])]; next[idx] = { ...next[idx], totalPrice: e.target.value }; setForm({ ...form, rates: next });
+                        }} /></td>
+                        <td><button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { const next = [...(form.rates || [])]; next.splice(idx, 1); setForm({ ...form, rates: next }); }}>Eliminar</button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button type="button" className="btn btn-sm btn-teal mt-2" onClick={() => { const next = [...(form.rates || [])]; next.push({ minPeople: 1, maxPeople: 1, totalPrice: 0 }); setForm({ ...form, rates: next }); }}>Agregar tarifa</button>
+            </div>
             <div className="col-12 col-md-6"><label className="form-label">Cupos</label><input type="number" className="form-control" value={form.availableSlots || ''} onChange={(e) => setForm({ ...form, availableSlots: e.target.value })} /></div>
           </div>
         );

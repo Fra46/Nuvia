@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Cloud, Menu, ShoppingBag, X } from 'lucide-react';
+import { Cloud, Menu, ShoppingBag, X, User, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,15 +10,16 @@ const navItems = [
   { href: '/hotels', label: 'Hoteles' },
   { href: '/tours', label: 'Tours' },
   { href: '/packages', label: 'Paquetes' },
-  { href: '/admin', label: 'Admin' },
 ];
 
 export default function SiteHeader() {
   const location = useLocation();
   const { count } = useCart();
   const { user, logout } = useAuth();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -29,7 +30,29 @@ export default function SiteHeader() {
 
   useEffect(() => {
     setOpen(false);
+    setUserMenuOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuOpen && userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [userMenuOpen]);
 
   return (
     <header className={`nv-header ${scrolled ? 'scrolled' : ''}`}>
@@ -63,16 +86,39 @@ export default function SiteHeader() {
             </Link>
 
             {user ? (
-              <button
-                type="button"
-                onClick={logout}
-                className="btn btn-light border-nv rounded-pill px-3 d-none d-md-inline-flex fw-medium"
-              >
-                Salir
-              </button>
+              <div ref={userMenuRef} className="position-relative d-none d-md-inline-block">
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  className="btn btn-light border-nv user-btn d-inline-flex align-items-center gap-2 fw-medium"
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="true"
+                >
+                  <span className="user-avatar">
+                    <User size={16} />
+                  </span>
+                  <ChevronDown size={14} />
+                </button>
+
+                {userMenuOpen && (
+                  <div className="dropdown-menu show shadow-sm" style={{ right: 0, left: 'auto', position: 'absolute', transform: 'translateY(8px)', minWidth: '13rem', borderRadius: '0.75rem', overflow: 'hidden' }}>
+                      <Link to="/profile" className="dropdown-item">Perfil</Link>
+                      <Link to="/reservations" className="dropdown-item">Mis reservas</Link>
+                    {(() => {
+                      const role = String(user?.role ?? user?.Role ?? '').toLowerCase();
+                      if (role === 'admin' || role === '1') {
+                        return <Link to="/admin" className="dropdown-item">Admin</Link>;
+                      }
+                      return null;
+                    })()}
+                    <div className="dropdown-divider"></div>
+                    <button type="button" className="dropdown-item" onClick={() => { setUserMenuOpen(false); logout(); }}>Cerrar Sesión</button>
+                  </div>
+                )}
+              </div>
             ) : (
               <Link to="/login" className="btn btn-light border-nv rounded-pill px-3 d-none d-md-inline-flex fw-medium">
-                Login
+                Iniciar Sesión
               </Link>
             )}
 
@@ -118,12 +164,21 @@ export default function SiteHeader() {
               Planea tu viaje
             </Link>
             {user ? (
-              <button type="button" onClick={logout} className="btn btn-light border-nv rounded-pill mt-2 fw-medium">
-                Salir
-              </button>
+              <div className="d-flex flex-column gap-1">
+                <Link to="/profile" className="text-decoration-none px-3 py-2">Perfil</Link>
+                <Link to="/reservations" className="text-decoration-none px-3 py-2">Mis reservas</Link>
+                {(() => {
+                  const role = String(user?.role ?? user?.Role ?? '').toLowerCase();
+                  if (role === 'admin' || role === '1') {
+                    return <Link to="/admin" className="text-decoration-none px-3 py-2">Admin</Link>;
+                  }
+                  return null;
+                })()}
+                <button type="button" onClick={logout} className="btn btn-light border-nv rounded-pill mt-2 fw-medium">Cerrar Sesión</button>
+              </div>
             ) : (
               <Link to="/login" className="btn btn-light border-nv rounded-pill mt-2 fw-medium">
-                Login
+                Iniciar Sesión
               </Link>
             )}
           </nav>

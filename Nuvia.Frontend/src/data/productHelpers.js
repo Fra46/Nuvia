@@ -115,6 +115,27 @@ export function mapHotelDto(hotel) {
 }
 
 export function mapTourDto(tour) {
+  const rates = Array.isArray(tour.rates) ? tour.rates : [];
+  const perPersonRates = rates
+    .map((r) => {
+      const totalPrice = Number(r.totalPrice ?? r.TotalPrice ?? 0);
+      const minPeople = Number(r.minPeople ?? r.MinPeople ?? 1) || 1;
+      return totalPrice / minPeople;
+    })
+    .filter(Number.isFinite);
+
+  let displayPrice = Number(tour.pricePerPerson) || 0;
+  let priceMax = 0;
+
+  if (perPersonRates.length > 0) {
+    displayPrice = Math.min(displayPrice > 0 ? displayPrice : Infinity, ...perPersonRates);
+    priceMax = Math.max(displayPrice, ...perPersonRates);
+  }
+
+  if (displayPrice === Infinity) {
+    displayPrice = 0;
+  }
+
   return {
     id: tour.id,
     category: 'tour',
@@ -123,7 +144,8 @@ export function mapTourDto(tour) {
     location: `${tour.city}, ${tour.country}`,
     destinationKey: tour.city?.toLowerCase() ?? '',
     image: resolveProductImage('tour', tour.city, tour.name),
-    price: tour.pricePerPerson,
+    price: displayPrice,
+    priceMax: priceMax > displayPrice ? priceMax : undefined,
     meta: `${tour.durationHours}h · ${tour.availableSlots} cupos`,
     isActive: tour.isActive,
     rating: 4.9,
