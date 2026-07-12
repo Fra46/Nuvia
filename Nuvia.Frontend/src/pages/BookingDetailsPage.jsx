@@ -58,7 +58,7 @@ export default function BookingDetailsPage() {
       `ID de reserva: ${booking.id}`,
       `Tipo: ${getTypeLabel(booking)}`,
       `Cantidad: ${booking.quantity}`,
-      `Total: ${booking.totalPrice} USD`,
+      `Total: ${booking.totalPrice} COP`,
       `Estado: ${booking.status}`,
       `Fecha de reserva: ${new Date(booking.bookingDate).toLocaleString()}`,
     ];

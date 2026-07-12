@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Nuvia")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e60ae8e58d9a30098a5a9fb7e61236e5cf2ea1a7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+74aab92330d3de176001b38862131311851825c4")]
 [assembly: System.Reflection.AssemblyProductAttribute("Nuvia")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Nuvia")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

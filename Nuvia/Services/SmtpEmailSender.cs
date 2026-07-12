@@ -278,7 +278,7 @@ Si no fuiste tú, puedes ignorar este correo.";
                 </tr>
                 <tr>
                   <td style=""padding:6px 0;color:#6b7280;"">Total:</td>
-                  <td style=""padding:6px 0;color:#111827;text-align:right;font-weight:600;"">${total:N2} USD</td>
+                  <td style=""padding:6px 0;color:#111827;text-align:right;font-weight:600;"">${total:N2} COP</td>
                 </tr>
               </table>
 
@@ -315,7 +315,7 @@ Tu reserva en Nuvia ha sido creada.
 
 Código de reserva: {bookingCode}
 Fecha: {bookingDate:dd/MM/yyyy HH:mm}
-Total: {total:N2} USD
+Total: {total:N2} COP
 
 Recibirás otro correo cuando tu pago sea confirmado.";
         }
@@ -370,8 +370,7 @@ Recibirás otro correo cuando tu pago sea confirmado.";
                   <td style=""padding:6px 0;color:#111827;text-align:right;"">{dateText}</td>
                 </tr>
                 <tr>
-                  <td style=""padding:6px 0;color:#6b7280;"">Monto pagado:</td>
-                  <td style=""padding:6px 0;color:#111827;text-align:right;font-weight:600;"">${amount:N2} USD</td>
+                  <td style=""padding:6px 0;color:#111827;text-align:right;font-weight:600;"">${amount:N2} COP</td>
                 </tr>
               </table>
 
@@ -409,7 +408,7 @@ Tu pago ha sido confirmado.
 
 Código de reserva: {bookingCode}
 Recibo: {paymentId}
-Monto pagado: {amount:N2} USD
+Monto pagado: {amount:N2} COP
 Fecha de pago: {paidAt:dd/MM/yyyy HH:mm}
 
 Gracias por reservar con Nuvia.

@@ -9,6 +9,12 @@ namespace Nuvia.Profiles
         public NuviaProfile()
         {
             CreateMap<User, UserDTO>();
+            CreateMap<UserDTO, User>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.LastLoginAt, opt => opt.Ignore())
+                .ForMember(dest => dest.MagicLinkToken, opt => opt.Ignore())
+                .ForMember(dest => dest.MagicLinkExpiresAt, opt => opt.Ignore());
             CreateMap<UserCreateDto, User>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
