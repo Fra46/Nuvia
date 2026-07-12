@@ -161,7 +161,7 @@ export default function Catalog({ products, showTypeFilter = true, initialSort =
       {filtered.length > 0 ? (
         <div className="row g-4 mt-1">
           {filtered.map((p) => (
-            <div key={p.id} className="col-12 col-sm-6 col-lg-4">
+            <div key={`${p.category}-${p.id}`} className="col-12 col-sm-6 col-lg-4">
               <ProductCard product={p} />
             </div>
           ))}

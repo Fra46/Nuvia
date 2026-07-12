@@ -1,14 +1,44 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import authService from '../services/authService';
 
 const AuthContext = createContext(null);
 
+function readSessionState() {
+  return {
+    user: authService.getCurrentUser(),
+    token: authService.getToken(),
+  };
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => authService.getCurrentUser());
-  const [token, setToken] = useState(() => authService.getToken());
+  const [session, setSession] = useState(() => readSessionState());
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+
+  const syncSession = useCallback(() => {
+    setSession(readSessionState());
+  }, []);
+
+  useEffect(() => {
+    const handleSessionChange = () => syncSession();
+
+    window.addEventListener('auth:changed', handleSessionChange);
+    window.addEventListener('storage', handleSessionChange);
+
+    // Debug: mostrar estado inicial de sesión
+    try {
+      const s = readSessionState();
+      console.debug('[AuthContext] inicial session token?', !!s.token, 'user?', !!s.user);
+    } catch (ex) {
+      console.error('[AuthContext] error leyendo session inicial', ex);
+    }
+
+    return () => {
+      window.removeEventListener('auth:changed', handleSessionChange);
+      window.removeEventListener('storage', handleSessionChange);
+    };
+  }, [syncSession]);
 
   const loginWithMagicLink = useCallback(async (email) => {
     setLoading(true);
@@ -38,8 +68,11 @@ export function AuthProvider({ children }) {
 
       if (result?.accessToken || result?.token) {
         const nextUser = result?.user || authService.getCurrentUser();
-        setToken(result?.accessToken || result?.token || null);
-        setUser(nextUser);
+        setSession({
+          user: nextUser,
+          token: result?.accessToken || result?.token || null,
+        });
+        window.dispatchEvent(new Event('auth:changed'));
       }
 
       return result;
@@ -54,25 +87,25 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     authService.logout();
-    setUser(null);
-    setToken(null);
+    setSession({ user: null, token: null });
     setMessage(null);
     setError(null);
+    window.dispatchEvent(new Event('auth:changed'));
   }, []);
 
   const value = useMemo(() => ({
-    user,
-    token,
+    user: session.user,
+    token: session.token,
     loading,
     message,
     error,
-    isAuthenticated: Boolean(token),
+    isAuthenticated: Boolean(session.token),
     setMessage,
     setError,
     loginWithMagicLink,
     confirmMagicLink,
     logout,
-  }), [user, token, loading, message, error, loginWithMagicLink, confirmMagicLink, logout]);
+  }), [session.user, session.token, loading, message, error, loginWithMagicLink, confirmMagicLink, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

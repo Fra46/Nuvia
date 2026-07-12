@@ -76,9 +76,11 @@ export default function PaymentSuccessPage() {
               </p>
             )}
 
-            <Link to="/" className="btn btn-teal rounded-pill px-4 mt-4">
-              Volver al inicio
-            </Link>
+            <div className="d-flex flex-wrap justify-content-center gap-2 mt-4">
+              <Link to="/reservations" className="btn btn-light border-nv rounded-pill px-4">Ver reservas</Link>
+              <Link to="/payments" className="btn btn-teal rounded-pill px-4">Ver pagos</Link>
+              <Link to="/" className="btn btn-outline-secondary rounded-pill px-4">Volver al inicio</Link>
+            </div>
           </div>
         </div>
       </div>

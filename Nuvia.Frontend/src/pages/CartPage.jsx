@@ -184,6 +184,9 @@ export default function CartPage() {
                   'Proceder al pago'
                 )}
               </button>
+              <div className="alert alert-light border-nv small mt-3 mb-0">
+                Tu compra queda protegida con Stripe. Una vez completado el pago, podrás ver el estado en tus reservas y pagos.
+              </div>
               <p className="text-center small text-muted-nv mt-3 mb-0">Pago seguro con Stripe · Cancelación flexible</p>
             </aside>
           </div>

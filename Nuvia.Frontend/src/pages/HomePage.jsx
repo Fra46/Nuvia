@@ -7,6 +7,7 @@ import flightsService from '../services/flightsService';
 import hotelsService from '../services/hotelsService';
 import toursService from '../services/toursService';
 import packagesService from '../services/packagesService';
+import { promotions } from '../data/promotions';
 
 const categories = [
   { href: '/flights', label: 'Vuelos', icon: Plane, image: '/images/cartagena.png', desc: 'Tarifas desde $189.000' },
@@ -140,6 +141,42 @@ export default function HomePage() {
               </Link>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Promociones y alertas */}
+      <section className="container-xl py-4">
+        <div className="row g-3">
+          <div className="col-12 col-lg-7">
+            <div className="nv-card p-4 p-md-5 h-100">
+              <p className="text-uppercase-xs text-amber mb-2">Promociones</p>
+              <h2 className="font-heading fw-semibold lh-sm mb-3">Ofertas pensadas para tu próximo viaje</h2>
+              <div className="d-flex flex-column gap-3">
+                {promotions.map((promo) => (
+                  <div key={promo.id} className="border border-nv rounded-4 p-3 d-flex justify-content-between align-items-center gap-3">
+                    <div>
+                      <div className="fw-semibold">{promo.title}</div>
+                      <div className="small text-muted-nv">{promo.subtitle}</div>
+                    </div>
+                    <span className={`badge rounded-pill px-3 py-2 ${promo.accent === 'amber' ? 'bg-amber-subtle text-amber' : promo.accent === 'teal' ? 'bg-teal-subtle text-teal' : 'bg-sand text-muted-nv'}`}>
+                      {promo.badge}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="col-12 col-lg-5">
+            <div className="nv-card p-4 p-md-5 h-100" style={{ backgroundColor: 'var(--nv-sand)' }}>
+              <p className="text-uppercase-xs text-amber mb-2">Notificaciones</p>
+              <h2 className="font-heading fw-semibold lh-sm mb-3">Tu viaje siempre en seguimiento</h2>
+              <ul className="list-unstyled mb-0 d-flex flex-column gap-3">
+                <li className="border-bottom border-nv pb-2">Confirmación inmediata de reservas y pagos.</li>
+                <li className="border-bottom border-nv pb-2">Recordatorios de salida y cambios de estado.</li>
+                <li>Acceso rápido a tus reservas y comprobantes.</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 

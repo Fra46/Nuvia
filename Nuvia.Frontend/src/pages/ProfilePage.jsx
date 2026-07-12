@@ -78,6 +78,7 @@ export default function ProfilePage() {
               <p className="text-uppercase-xs text-amber mb-2">Acciones rápidas</p>
               <div className="d-grid gap-2">
                 <Link to="/reservations" className="btn btn-light border-nv rounded-pill">Ver mis reservas</Link>
+                <Link to="/favorites" className="btn btn-light border-nv rounded-pill">Ver favoritos</Link>
                 <Link to="/cart" className="btn btn-teal rounded-pill">Ir al carrito</Link>
               </div>
             </div>

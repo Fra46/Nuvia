@@ -190,6 +190,13 @@ builder.Services
         {
             OnAuthenticationFailed = async context =>
             {
+                // Log the authentication failure for debugging purposes
+                try
+                {
+                    Log.Logger.Warning(context.Exception, "JWT authentication failed: {Message}", context.Exception?.Message);
+                }
+                catch { /* swallow logging errors */ }
+
                 if (context.Exception is SecurityTokenExpiredException)
                 {
                     if (!context.Response.HasStarted)
@@ -207,11 +214,24 @@ builder.Services
                         context.Response.Headers["WWW-Authenticate"] = "Bearer error=\"invalid_token\", error_description=\"token_expired\"";
                         await context.Response.WriteAsync(payload);
                     }
-                    else
-                    {
-                        // Response already started; nothing we can safely write here. Let pipeline continue.
-                    }
                 }
+                else
+                {
+                    // For other authentication failures, let the standard challenge flow handle the response
+                }
+            },
+            OnTokenValidated = context =>
+            {
+                // Log successful token validation (claims summary) to help debugging
+                try
+                {
+                    var name = context.Principal?.Identity?.Name ?? "(no name)";
+                    var claims = string.Join(",", context.Principal?.Claims.Select(c => $"{c.Type}={c.Value}") ?? Array.Empty<string>());
+                    Log.Logger.Information("JWT token validated for {Name}. Claims: {Claims}", name, claims);
+                }
+                catch { /* swallow logging errors */ }
+
+                return Task.CompletedTask;
             },
             OnChallenge = async context =>
             {

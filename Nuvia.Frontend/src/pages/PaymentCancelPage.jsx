@@ -15,9 +15,10 @@ export default function PaymentCancelPage() {
             <p className="text-muted-nv mt-2 mb-0" style={{ maxWidth: '24rem' }}>
               No se realizó ningún cargo. Puedes volver a tu carrito e intentarlo de nuevo cuando quieras.
             </p>
-            <Link to="/cart" className="btn btn-teal rounded-pill px-4 mt-4">
-              Volver al carrito
-            </Link>
+            <div className="d-flex flex-wrap justify-content-center gap-2 mt-4">
+              <Link to="/cart" className="btn btn-teal rounded-pill px-4">Volver al carrito</Link>
+              <Link to="/" className="btn btn-outline-secondary rounded-pill px-4">Seguir explorando</Link>
+            </div>
           </div>
         </div>
       </div>

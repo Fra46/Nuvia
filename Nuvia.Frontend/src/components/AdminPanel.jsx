@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, BriefcaseBusiness, Compass, CreditCard, PencilLine, Plane, Plus, ShieldCheck, Trash2 } from 'lucide-react';
+import { ArrowLeft, BriefcaseBusiness, Compass, CreditCard, PencilLine, Plane, Plus, ShieldCheck, Trash2, CircleCheckBig, Clock3 } from 'lucide-react';
 import flightsService from '../services/flightsService';
 import hotelsService from '../services/hotelsService';
 import toursService from '../services/toursService';
 import packagesService from '../services/packagesService';
 import bookingsService from '../services/bookingsService';
 import paymentsService from '../services/paymentsService';
+import usersService from '../services/usersService';
 
 const catalogTabs = [
   { key: 'flights', label: 'Vuelos' },
@@ -39,6 +40,9 @@ export default function AdminPanel() {
   const [items, setItems] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [userEdits, setUserEdits] = useState({});
+  const [savingUserId, setSavingUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(getInitialForm('flights'));
@@ -66,12 +70,14 @@ export default function AdminPanel() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [bookingData, paymentData] = await Promise.all([
+        const [bookingData, paymentData, userData] = await Promise.all([
           bookingsService.getAll(),
           paymentsService.getAll(),
+          usersService.getAll(),
         ]);
         setBookings(bookingData || []);
         setPayments(paymentData || []);
+        setUsers(userData || []);
       } catch (error) {
         setFeedback(error?.message || 'No se pudieron cargar reservas y pagos.');
       }
@@ -80,6 +86,20 @@ export default function AdminPanel() {
     loadData();
     loadCatalog('flights');
   }, []);
+
+  useEffect(() => {
+    setUserEdits((prev) => {
+      const next = {};
+      users.forEach((user) => {
+        const existing = prev[user.id] || {};
+        next[user.id] = {
+          role: existing.role ?? user.role ?? '3',
+          isActive: existing.isActive ?? user.isActive ?? true,
+        };
+      });
+      return next;
+    });
+  }, [users]);
 
   const handleTabChange = async (tab) => {
     setActiveTab(tab);
@@ -165,6 +185,25 @@ export default function AdminPanel() {
       setFeedback('Registro eliminado.');
     } catch (error) {
       setFeedback(error?.message || 'No se pudo eliminar el registro.');
+    }
+  };
+
+  const handleUserUpdate = async (user) => {
+    const draft = userEdits[user.id] || {};
+    setSavingUserId(user.id);
+    try {
+      await usersService.update(user.id, {
+        ...user,
+        role: Number(draft.role ?? user.role ?? 3),
+        isActive: Boolean(draft.isActive ?? user.isActive ?? true),
+      });
+      const refreshed = await usersService.getAll();
+      setUsers(refreshed || []);
+      setFeedback('Usuario actualizado correctamente.');
+    } catch (error) {
+      setFeedback(error?.message || 'No se pudo actualizar el usuario.');
+    } finally {
+      setSavingUserId(null);
     }
   };
 
@@ -345,21 +384,93 @@ export default function AdminPanel() {
               </div>
               <div className="row g-3">
                 <div className="col-12 col-md-6">
-                  <h3 className="font-heading fs-5 fw-semibold">Reservas</h3>
+                  <h3 className="font-heading fs-5 fw-semibold">Reservas recientes</h3>
                   <ul className="list-unstyled mb-0">
-                    {bookings.slice(0, 5).map((booking) => (
-                      <li key={booking.id} className="border-bottom py-2 small text-muted-nv">{booking.bookingCode || booking.id} · {booking.status || 'Pendiente'}</li>
+                    {bookings.slice(0, 6).map((booking) => (
+                      <li key={booking.id} className="border-bottom py-2 small text-muted-nv d-flex justify-content-between align-items-center gap-3">
+                        <span>{booking.bookingCode || `Reserva #${booking.id}`}</span>
+                        <span className="d-inline-flex align-items-center gap-1">
+                          {booking.status === 2 || booking.status === 'Confirmed' ? <CircleCheckBig size={14} className="text-success" /> : <Clock3 size={14} className="text-warning" />}
+                          {booking.status || 'Pendiente'}
+                        </span>
+                      </li>
                     ))}
                   </ul>
                 </div>
                 <div className="col-12 col-md-6">
-                  <h3 className="font-heading fs-5 fw-semibold">Pagos</h3>
+                  <h3 className="font-heading fs-5 fw-semibold">Pagos recientes</h3>
                   <ul className="list-unstyled mb-0">
-                    {payments.slice(0, 5).map((payment) => (
-                      <li key={payment.id} className="border-bottom py-2 small text-muted-nv">{payment.paymentIntentId || payment.id} · {payment.status || 'Pendiente'}</li>
+                    {payments.slice(0, 6).map((payment) => (
+                      <li key={payment.id} className="border-bottom py-2 small text-muted-nv d-flex justify-content-between align-items-center gap-3">
+                        <span>{payment.stripePaymentIntentId || payment.id}</span>
+                        <span>{payment.status || 'Pendiente'}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-4xl border border-nv mt-4">
+              <div className="d-flex align-items-center gap-2 text-teal fw-semibold mb-3">
+                <ShieldCheck size={18} />
+                <span>Gestión de usuarios</span>
+              </div>
+              <div className="table-responsive">
+                <table className="table align-middle">
+                  <thead>
+                    <tr>
+                      <th>Usuario</th>
+                      <th>Rol</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.slice(0, 8).map((user) => {
+                      const draft = userEdits[user.id] || { role: user.role ?? '3', isActive: user.isActive ?? true };
+                      return (
+                        <tr key={user.id}>
+                          <td>
+                            <div className="fw-semibold">{user.fullName || user.email}</div>
+                            <div className="small text-muted-nv">{user.email}</div>
+                          </td>
+                          <td>
+                            <select
+                              className="form-select form-select-sm"
+                              value={String(draft.role ?? '3')}
+                              onChange={(event) => setUserEdits((prev) => ({
+                                ...prev,
+                                [user.id]: { ...prev[user.id], role: event.target.value },
+                              }))}
+                            >
+                              <option value="1">Admin</option>
+                              <option value="2">Agent</option>
+                              <option value="3">Customer</option>
+                            </select>
+                          </td>
+                          <td>
+                            <div className="d-flex align-items-center gap-2">
+                              <div className="form-check form-switch">
+                                <input
+                                  className="form-check-input"
+                                  type="checkbox"
+                                  checked={Boolean(draft.isActive ?? true)}
+                                  onChange={(event) => setUserEdits((prev) => ({
+                                    ...prev,
+                                    [user.id]: { ...prev[user.id], isActive: event.target.checked },
+                                  }))}
+                                />
+                              </div>
+                              <button type="button" className="btn btn-sm btn-teal" onClick={() => handleUserUpdate(user)} disabled={savingUserId === user.id}>
+                                {savingUserId === user.id ? 'Guardando...' : 'Guardar'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

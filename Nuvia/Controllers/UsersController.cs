@@ -58,7 +58,9 @@ namespace Nuvia.Controllers
         [Authorize]
         public async Task<ActionResult<UserDTO>> GetMe()
         {
-            var sub = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            // Some JWT handlers map the 'sub' claim to ClaimTypes.NameIdentifier.
+            // Try both the raw 'sub' and the mapped NameIdentifier to be robust.
+            var sub = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(sub)) return Unauthorized();
 
             if (!int.TryParse(sub, out var userId))

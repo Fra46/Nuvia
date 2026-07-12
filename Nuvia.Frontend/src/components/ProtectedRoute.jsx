@@ -8,14 +8,18 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
 
+  console.debug('[ProtectedRoute] isAuthenticated=', isAuthenticated, 'user=', user, 'allowedRoles=', allowedRoles);
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   const userRole = normalizeRole(user?.role ?? user?.Role);
-  const authorized = allowedRoles
-    .map(normalizeRole)
-    .some((role) => role === userRole || (role === 'admin' && userRole === '1'));
+  const authorized = allowedRoles.length === 0
+    ? true
+    : allowedRoles
+        .map(normalizeRole)
+        .some((role) => role === userRole || (role === 'admin' && userRole === '1'));
 
   if (!authorized) {
     return <Navigate to="/" replace />;

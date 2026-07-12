@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
-import { Check, Clock, MapPin, Plus, Star } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Check, Clock, Heart, MapPin, Plus, Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { categoryLabels, formatCOP } from '../data/productHelpers';
+import { isFavorite, toggleFavorite } from '../utils/favorites';
 
 export default function ProductCard({ product }) {
   const { add } = useCart();
   const [added, setAdded] = useState(false);
+  const [favorite, setFavorite] = useState(false);
+
+  useEffect(() => {
+    setFavorite(isFavorite(product.id));
+  }, [product.id]);
 
   const handleAdd = () => {
     add(product);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1600);
+  };
+
+  const handleFavoriteToggle = () => {
+    toggleFavorite(product);
+    setFavorite((prev) => !prev);
   };
 
   return (
@@ -21,10 +32,20 @@ export default function ProductCard({ product }) {
           <span className="chip bg-white text-teal text-uppercase-xs shadow-sm">
             {categoryLabels[product.category]}
           </span>
-          <span className="chip bg-white shadow-sm" style={{ color: 'var(--nv-ink)' }}>
-            <Star size={14} className="text-amber" fill="currentColor" />
-            {product.rating}
-          </span>
+          <div className="d-flex gap-2">
+            <span className="chip bg-white shadow-sm" style={{ color: 'var(--nv-ink)' }}>
+              <Star size={14} className="text-amber" fill="currentColor" />
+              {product.rating}
+            </span>
+            <button
+              type="button"
+              onClick={handleFavoriteToggle}
+              aria-label={favorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+              className={`chip ${favorite ? 'bg-amber text-white' : 'bg-white text-teal'} shadow-sm border-0`}
+            >
+              <Heart size={14} fill={favorite ? 'currentColor' : 'none'} />
+            </button>
+          </div>
         </div>
       </div>
 

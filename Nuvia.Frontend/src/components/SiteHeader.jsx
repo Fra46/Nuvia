@@ -102,12 +102,14 @@ export default function SiteHeader() {
 
                 {userMenuOpen && (
                   <div className="dropdown-menu show shadow-sm" style={{ right: 0, left: 'auto', position: 'absolute', transform: 'translateY(8px)', minWidth: '13rem', borderRadius: '0.75rem', overflow: 'hidden' }}>
-                      <Link to="/profile" className="dropdown-item">Perfil</Link>
-                      <Link to="/reservations" className="dropdown-item">Mis reservas</Link>
+                    <Link to="/profile" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>Perfil</Link>
+                    <Link to="/favorites" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>Favoritos</Link>
+                    <Link to="/reservations" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>Mis reservas</Link>
+                    <Link to="/payments" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>Pagos</Link>
                     {(() => {
                       const role = String(user?.role ?? user?.Role ?? '').toLowerCase();
                       if (role === 'admin' || role === '1') {
-                        return <Link to="/admin" className="dropdown-item">Admin</Link>;
+                        return <Link to="/admin" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>Admin</Link>;
                       }
                       return null;
                     })()}
@@ -165,16 +167,18 @@ export default function SiteHeader() {
             </Link>
             {user ? (
               <div className="d-flex flex-column gap-1">
-                <Link to="/profile" className="text-decoration-none px-3 py-2">Perfil</Link>
-                <Link to="/reservations" className="text-decoration-none px-3 py-2">Mis reservas</Link>
+                <Link to="/profile" className="text-decoration-none px-3 py-2" onClick={() => setOpen(false)}>Perfil</Link>
+                <Link to="/favorites" className="text-decoration-none px-3 py-2" onClick={() => setOpen(false)}>Favoritos</Link>
+                <Link to="/reservations" className="text-decoration-none px-3 py-2" onClick={() => setOpen(false)}>Mis reservas</Link>
+                <Link to="/payments" className="text-decoration-none px-3 py-2" onClick={() => setOpen(false)}>Pagos</Link>
                 {(() => {
                   const role = String(user?.role ?? user?.Role ?? '').toLowerCase();
                   if (role === 'admin' || role === '1') {
-                    return <Link to="/admin" className="text-decoration-none px-3 py-2">Admin</Link>;
+                    return <Link to="/admin" className="text-decoration-none px-3 py-2" onClick={() => setOpen(false)}>Admin</Link>;
                   }
                   return null;
                 })()}
-                <button type="button" onClick={logout} className="btn btn-light border-nv rounded-pill mt-2 fw-medium">Cerrar Sesión</button>
+                <button type="button" onClick={() => { setOpen(false); logout(); }} className="btn btn-light border-nv rounded-pill mt-2 fw-medium">Cerrar Sesión</button>
               </div>
             ) : (
               <Link to="/login" className="btn btn-light border-nv rounded-pill mt-2 fw-medium">

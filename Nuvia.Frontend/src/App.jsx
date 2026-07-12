@@ -18,6 +18,8 @@ import AdminPage from './pages/AdminPage';
 import ReservationsPage from './pages/ReservationsPage';
 import BookingDetailsPage from './pages/BookingDetailsPage';
 import ProfilePage from './pages/ProfilePage';
+import PaymentsPage from './pages/PaymentsPage';
+import FavoritesPage from './pages/FavoritesPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -52,6 +54,22 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payments"
+                element={
+                  <ProtectedRoute>
+                    <PaymentsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/favorites"
+                element={
+                  <ProtectedRoute>
+                    <FavoritesPage />
                   </ProtectedRoute>
                 }
               />

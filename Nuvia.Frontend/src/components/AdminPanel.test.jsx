@@ -15,5 +15,6 @@ describe('AdminPanel', () => {
     expect(screen.getByText(/panel de administración/i)).toBeTruthy();
     expect(screen.getByText(/gestión de catálogo/i)).toBeTruthy();
     expect(screen.getByText(/reservas y pagos/i)).toBeTruthy();
+    expect(screen.getByText(/gestión de usuarios/i)).toBeTruthy();
   });
 });
