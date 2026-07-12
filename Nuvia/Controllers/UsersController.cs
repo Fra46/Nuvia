@@ -72,6 +72,32 @@ namespace Nuvia.Controllers
             return Ok(_mapper.Map<UserDTO>(user));
         }
 
+        // PUT: api/Users/me
+        // Lets an authenticated user update their own display name / phone number.
+        // Deliberately does NOT allow changing Role, IsActive or EmailVerified -
+        // those remain admin-only via PUT api/Users/{id}.
+        [HttpPut("me")]
+        [Authorize]
+        public async Task<ActionResult<UserDTO>> UpdateMe(UserUpdateSelfDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            var sub = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(sub) || !int.TryParse(sub, out var userId))
+                return Unauthorized();
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
+
+            user.FullName = dto.FullName.Trim();
+            user.PhoneNumber = string.IsNullOrWhiteSpace(dto.PhoneNumber) ? null : dto.PhoneNumber.Trim();
+
+            await _context.SaveChangesAsync();
+
+            return Ok(_mapper.Map<UserDTO>(user));
+        }
+
         // PUT: api/Users/5
         [HttpPut("{id}")]
         [Authorize(Roles = RoleNames.Admin)]

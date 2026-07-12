@@ -36,6 +36,16 @@ const usersService = {
     }
   },
 
+  // Actualizar mi propio perfil (nombre y teléfono)
+  updateMe: async (userData) => {
+    try {
+      const response = await api.putFull(`${ENDPOINT}/me`, userData);
+      return response.data;
+    } catch (error) {
+      throw api.handleError(error);
+    }
+  },
+
   // Crear nuevo usuario
   create: async (userData) => {
     try {

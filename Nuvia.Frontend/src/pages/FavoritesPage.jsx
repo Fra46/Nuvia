@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Sparkles } from 'lucide-react';
-import { getStoredFavorites } from '../utils/favorites';
+import { ArrowLeft, Heart, Sparkles, Trash2 } from 'lucide-react';
+import { getStoredFavorites, saveFavorites } from '../utils/favorites';
 import ProductCard from '../components/ProductCard';
 
 export default function FavoritesPage() {
@@ -13,6 +13,13 @@ export default function FavoritesPage() {
     window.addEventListener('storage', refresh);
     return () => window.removeEventListener('storage', refresh);
   }, []);
+
+  const handleClearAll = () => {
+    if (favorites.length === 0) return;
+    if (!window.confirm('¿Quitar todos tus favoritos? Esta acción no se puede deshacer.')) return;
+    saveFavorites([]);
+    setFavorites([]);
+  };
 
   return (
     <main className="container-xl py-5" style={{ paddingTop: '7rem' }}>
@@ -26,9 +33,20 @@ export default function FavoritesPage() {
             <p className="text-uppercase-xs text-amber mb-2">Tus favoritos</p>
             <h1 className="font-heading fw-semibold lh-sm mb-0">Guardaste estas experiencias para más tarde</h1>
           </div>
-          <div className="d-inline-flex align-items-center gap-2 rounded-pill border border-nv px-3 py-2 text-muted-nv">
-            <Heart size={16} />
-            <span>{favorites.length} guardados</span>
+          <div className="d-flex align-items-center gap-2">
+            <div className="d-inline-flex align-items-center gap-2 rounded-pill border border-nv px-3 py-2 text-muted-nv">
+              <Heart size={16} />
+              <span>{favorites.length} guardados</span>
+            </div>
+            {favorites.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="btn btn-sm btn-outline-danger rounded-pill d-inline-flex align-items-center gap-1"
+              >
+                <Trash2 size={14} /> Vaciar
+              </button>
+            )}
           </div>
         </div>
 
@@ -38,7 +56,8 @@ export default function FavoritesPage() {
               <Sparkles size={24} />
             </div>
             <h2 className="font-heading fs-4 fw-semibold mt-3">Aún no tienes favoritos</h2>
-            <p className="text-muted-nv mb-0">Marca tus experiencias favoritas desde cualquier tarjeta para verlas aquí.</p>
+            <p className="text-muted-nv mb-3">Marca tus experiencias favoritas desde cualquier tarjeta para verlas aquí.</p>
+            <Link to="/packages" className="btn btn-teal rounded-pill px-4">Explorar paquetes</Link>
           </div>
         ) : (
           <div className="row g-4 mt-2">

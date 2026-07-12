@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, CreditCard, CircleDollarSign, CheckCircle2, Download, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, CircleDollarSign, CreditCard, Download, XCircle } from 'lucide-react';
 import paymentsService from '../services/paymentsService';
 
 function formatCurrency(value) {
@@ -40,6 +40,7 @@ export default function PaymentsPage() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     const load = async () => {
@@ -57,6 +58,12 @@ export default function PaymentsPage() {
     load();
   }, []);
 
+  const filteredPayments = useMemo(() => {
+    const sorted = [...payments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    if (statusFilter === 'all') return sorted;
+    return sorted.filter((p) => getStatusLabel(p.status).toLowerCase() === statusFilter);
+  }, [payments, statusFilter]);
+
   return (
     <main className="container-xl py-5">
       <Link to="/" className="d-inline-flex align-items-center gap-2 small fw-medium text-muted-nv text-decoration-none">
@@ -69,9 +76,24 @@ export default function PaymentsPage() {
             <p className="text-uppercase-xs text-amber mb-2">Historial de pagos</p>
             <h1 className="font-heading fw-semibold lh-sm mb-0">Seguimiento seguro de tus compras</h1>
           </div>
-          <div className="d-inline-flex align-items-center gap-2 rounded-pill border border-nv px-3 py-2 text-muted-nv">
-            <CreditCard size={16} />
-            <span>Stripe + reservas</span>
+          <div className="d-flex align-items-center gap-2">
+            <div className="d-inline-flex align-items-center gap-2 rounded-pill border border-nv px-3 py-2 text-muted-nv">
+              <CreditCard size={16} />
+              <span>Stripe + reservas</span>
+            </div>
+            {payments.length > 0 && (
+              <select
+                className="form-select form-select-sm border-nv"
+                style={{ maxWidth: '11rem' }}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">Todos los estados</option>
+                <option value="aprobado">Aprobados</option>
+                <option value="pendiente">Pendientes</option>
+                <option value="rechazado">Rechazados</option>
+              </select>
+            )}
           </div>
         </div>
 
@@ -82,15 +104,21 @@ export default function PaymentsPage() {
           <div className="alert alert-info mt-4">Aún no tienes pagos registrados.</div>
         )}
 
-        {!loading && !error && payments.length > 0 && (
+        {!loading && !error && payments.length > 0 && filteredPayments.length === 0 && (
+          <div className="alert alert-light border-nv mt-4">No hay pagos con ese estado.</div>
+        )}
+
+        {!loading && !error && filteredPayments.length > 0 && (
           <div className="row g-3 mt-2">
-            {payments.map((payment) => (
+            {filteredPayments.map((payment) => (
               <div key={payment.id} className="col-12 col-lg-6">
                 <div className="border border-nv rounded-4 p-4 h-100">
                   <div className="d-flex justify-content-between align-items-start gap-3">
                     <div>
                       <div className="fw-semibold">Pago #{payment.id}</div>
-                      <div className="small text-muted-nv">Reserva #{payment.bookingId}</div>
+                      <Link to={`/bookings/${payment.bookingId}`} className="small text-teal text-decoration-none">
+                        Reserva #{payment.bookingId}
+                      </Link>
                     </div>
                     <span className={`badge rounded-pill d-inline-flex align-items-center gap-2 ${payment.status === 2 || payment.status === 'Approved' ? 'bg-success-subtle text-success' : payment.status === 3 || payment.status === 'Rejected' ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning'}`}>
                       {payment.status === 2 || payment.status === 'Approved' ? <CheckCircle2 size={14} /> : payment.status === 3 || payment.status === 'Rejected' ? <XCircle size={14} /> : <CircleDollarSign size={14} />}

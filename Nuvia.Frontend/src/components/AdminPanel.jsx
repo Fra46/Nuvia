@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, BriefcaseBusiness, Compass, CreditCard, PencilLine, Plane, Plus, ShieldCheck, Trash2, CircleCheckBig, Clock3 } from 'lucide-react';
+import {
+  AlertTriangle, ArrowLeft, BriefcaseBusiness, CircleCheckBig, Clock3, Compass,
+  CreditCard, PencilLine, Plane, Search, ShieldCheck, Trash2, Users, X,
+} from 'lucide-react';
 import flightsService from '../services/flightsService';
 import hotelsService from '../services/hotelsService';
 import toursService from '../services/toursService';
@@ -31,6 +34,22 @@ const emptyForms = {
   },
 };
 
+// Required fields per catalog tab, used for lightweight client-side validation
+// before hitting the API - avoids round-tripping obviously incomplete forms.
+const requiredFields = {
+  flights: ['airline', 'flightCode', 'origin', 'destination', 'price', 'availableSeats'],
+  hotels: ['name', 'city', 'country', 'stars', 'pricePerNight'],
+  tours: ['name', 'city', 'country', 'durationHours'],
+  packages: ['title', 'destination', 'nights', 'totalPrice'],
+};
+
+const fieldLabels = {
+  airline: 'Aerolínea', flightCode: 'Código', origin: 'Origen', destination: 'Destino',
+  price: 'Precio', availableSeats: 'Asientos', name: 'Nombre', city: 'Ciudad',
+  country: 'País', stars: 'Estrellas', pricePerNight: 'Precio por noche',
+  durationHours: 'Duración', title: 'Título', nights: 'Noches', totalPrice: 'Precio total',
+};
+
 function getInitialForm(type) {
   return { ...emptyForms[type] };
 }
@@ -48,6 +67,10 @@ export default function AdminPanel() {
   const [form, setForm] = useState(getInitialForm('flights'));
   const [editingId, setEditingId] = useState(null);
   const [feedback, setFeedback] = useState('');
+  const [feedbackType, setFeedbackType] = useState('info');
+  const [formError, setFormError] = useState('');
+  const [search, setSearch] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const loadCatalog = async (tab = activeTab) => {
     setLoading(true);
@@ -62,6 +85,7 @@ export default function AdminPanel() {
       setItems(data || []);
     } catch (error) {
       setFeedback(error?.message || 'No se pudieron cargar los registros.');
+      setFeedbackType('danger');
     } finally {
       setLoading(false);
     }
@@ -80,11 +104,13 @@ export default function AdminPanel() {
         setUsers(userData || []);
       } catch (error) {
         setFeedback(error?.message || 'No se pudieron cargar reservas y pagos.');
+        setFeedbackType('danger');
       }
     };
 
     loadData();
     loadCatalog('flights');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -105,11 +131,36 @@ export default function AdminPanel() {
     setActiveTab(tab);
     setEditingId(null);
     setForm(getInitialForm(tab));
+    setFormError('');
+    setSearch('');
+    setConfirmDeleteId(null);
     await loadCatalog(tab);
+  };
+
+  const validateForm = () => {
+    const fields = requiredFields[activeTab] || [];
+    for (const field of fields) {
+      const value = form[field];
+      if (value === '' || value === null || value === undefined) {
+        return `Completa el campo "${fieldLabels[field] || field}" antes de guardar.`;
+      }
+    }
+    if (activeTab === 'tours' && (!form.rates || form.rates.length === 0) && !form.pricePerPerson) {
+      return 'Agrega al menos una tarifa o un precio por persona para el tour.';
+    }
+    return '';
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    const validationError = validateForm();
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+
+    setFormError('');
     setSaving(true);
     setFeedback('');
 
@@ -136,12 +187,14 @@ export default function AdminPanel() {
         if (activeTab === 'tours') await toursService.update(editingId, payload);
         if (activeTab === 'packages') await packagesService.update(editingId, payload);
         setFeedback('Registro actualizado correctamente.');
+        setFeedbackType('success');
       } else {
         if (activeTab === 'flights') await flightsService.create(payload);
         if (activeTab === 'hotels') await hotelsService.create(payload);
         if (activeTab === 'tours') await toursService.create(payload);
         if (activeTab === 'packages') await packagesService.create(payload);
         setFeedback('Registro creado correctamente.');
+        setFeedbackType('success');
       }
 
       await handleTabChange(activeTab);
@@ -149,6 +202,7 @@ export default function AdminPanel() {
       setEditingId(null);
     } catch (error) {
       setFeedback(error?.message || 'No se pudo guardar el registro.');
+      setFeedbackType('danger');
     } finally {
       setSaving(false);
     }
@@ -172,10 +226,13 @@ export default function AdminPanel() {
     };
     setForm(nextForm);
     setEditingId(item.id);
+    setFormError('');
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('¿Deseas eliminar este registro?')) return;
+  const requestDelete = (id) => setConfirmDeleteId(id);
+  const cancelDelete = () => setConfirmDeleteId(null);
+
+  const confirmDelete = async (id) => {
     try {
       if (activeTab === 'flights') await flightsService.delete(id);
       if (activeTab === 'hotels') await hotelsService.delete(id);
@@ -183,8 +240,12 @@ export default function AdminPanel() {
       if (activeTab === 'packages') await packagesService.delete(id);
       await handleTabChange(activeTab);
       setFeedback('Registro eliminado.');
+      setFeedbackType('success');
     } catch (error) {
       setFeedback(error?.message || 'No se pudo eliminar el registro.');
+      setFeedbackType('danger');
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -200,12 +261,33 @@ export default function AdminPanel() {
       const refreshed = await usersService.getAll();
       setUsers(refreshed || []);
       setFeedback('Usuario actualizado correctamente.');
+      setFeedbackType('success');
     } catch (error) {
       setFeedback(error?.message || 'No se pudo actualizar el usuario.');
+      setFeedbackType('danger');
     } finally {
       setSavingUserId(null);
     }
   };
+
+  const filteredItems = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((item) => {
+      const haystack = [
+        item.name, item.title, item.airline, item.flightCode, item.city,
+        item.destination, item.country, item.origin, item.description,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [items, search]);
+
+  const stats = useMemo(() => ([
+    { label: 'Ítems en el catálogo actual', value: items.length, Icon: Plane },
+    { label: 'Reservas totales', value: bookings.length, Icon: BriefcaseBusiness },
+    { label: 'Pagos registrados', value: payments.length, Icon: CreditCard },
+    { label: 'Usuarios', value: users.length, Icon: Users },
+  ]), [items, bookings, payments, users]);
 
   const renderFormFields = () => {
     switch (activeTab) {
@@ -311,7 +393,30 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        <div className="row g-4 mt-3">
+        {feedback && (
+          <div className={`alert alert-${feedbackType === 'success' ? 'success' : feedbackType === 'danger' ? 'danger' : 'info'} mt-3 mb-0 d-flex justify-content-between align-items-center`}>
+            <span>{feedback}</span>
+            <button type="button" className="btn-close" aria-label="Cerrar" onClick={() => setFeedback('')} />
+          </div>
+        )}
+
+        <div className="row g-3 mt-1">
+          {stats.map((s) => (
+            <div className="col-6 col-lg-3" key={s.label}>
+              <div className="p-3 rounded-4 border border-nv d-flex align-items-center gap-3" style={{ backgroundColor: 'var(--nv-cream)' }}>
+                <span className="icon-circle bg-teal text-white" style={{ width: '2.5rem', height: '2.5rem' }}>
+                  <s.Icon size={18} />
+                </span>
+                <div>
+                  <div className="font-heading fs-4 fw-semibold lh-1">{s.value}</div>
+                  <div className="small text-muted-nv">{s.label}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="row g-4 mt-2">
           <div className="col-12 col-lg-4">
             <div className="p-4 rounded-4xl border border-nv h-100" style={{ backgroundColor: 'var(--nv-cream)' }}>
               <div className="d-flex align-items-center gap-2 text-teal fw-semibold mb-3">
@@ -332,19 +437,45 @@ export default function AdminPanel() {
                   <input className="form-check-input" type="checkbox" checked={Boolean(form.isActive)} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} id="activeSwitch" />
                   <label className="form-check-label" htmlFor="activeSwitch">Activo</label>
                 </div>
+
+                {formError && (
+                  <div className="alert alert-danger small mt-3 mb-0 d-flex align-items-center gap-2">
+                    <AlertTriangle size={14} /> {formError}
+                  </div>
+                )}
+
                 <button type="submit" disabled={saving} className="btn btn-teal rounded-pill px-4 mt-3">
                   {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
                 </button>
-                {editingId ? <button type="button" onClick={() => { setEditingId(null); setForm(getInitialForm(activeTab)); }} className="btn btn-light border-nv rounded-pill px-4 mt-3 ms-2">Cancelar</button> : null}
+                {editingId ? (
+                  <button
+                    type="button"
+                    onClick={() => { setEditingId(null); setForm(getInitialForm(activeTab)); setFormError(''); }}
+                    className="btn btn-light border-nv rounded-pill px-4 mt-3 ms-2"
+                  >
+                    Cancelar
+                  </button>
+                ) : null}
               </form>
             </div>
           </div>
 
           <div className="col-12 col-lg-8">
             <div className="p-4 rounded-4xl border border-nv">
-              <div className="d-flex align-items-center gap-2 text-teal fw-semibold mb-3">
-                <Plane size={18} />
-                <span>{catalogTabs.find((tab) => tab.key === activeTab)?.label}</span>
+              <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <div className="d-flex align-items-center gap-2 text-teal fw-semibold">
+                  <Plane size={18} />
+                  <span>{catalogTabs.find((tab) => tab.key === activeTab)?.label}</span>
+                </div>
+                <div className="input-group" style={{ maxWidth: '16rem' }}>
+                  <span className="input-group-text bg-white border-nv"><Search size={14} /></span>
+                  <input
+                    className="form-control form-control-sm border-nv"
+                    placeholder="Buscar..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
               </div>
               {loading ? <p className="text-muted-nv">Cargando registros...</p> : (
                 <div className="table-responsive">
@@ -358,19 +489,36 @@ export default function AdminPanel() {
                       </tr>
                     </thead>
                     <tbody>
-                      {items.map((item) => (
+                      {filteredItems.map((item) => (
                         <tr key={item.id}>
                           <td>{item.name || item.title || item.airline || item.flightCode || item.city || item.destination}</td>
                           <td className="small text-muted-nv">{item.destination || item.city || item.origin || item.country || item.flightCode || item.description || ''}</td>
-                          <td>{item.isActive ? 'Activo' : 'Inactivo'}</td>
                           <td>
-                            <div className="d-flex gap-2">
-                              <button type="button" onClick={() => handleEdit(item)} className="btn btn-sm btn-light border-nv"><PencilLine size={14} /></button>
-                              <button type="button" onClick={() => handleDelete(item.id)} className="btn btn-sm btn-outline-danger"><Trash2 size={14} /></button>
-                            </div>
+                            <span className={`badge rounded-pill ${item.isActive ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'}`}>
+                              {item.isActive ? 'Activo' : 'Inactivo'}
+                            </span>
+                          </td>
+                          <td>
+                            {confirmDeleteId === item.id ? (
+                              <div className="d-flex align-items-center gap-2">
+                                <span className="small text-danger d-inline-flex align-items-center gap-1">
+                                  <AlertTriangle size={14} /> ¿Eliminar?
+                                </span>
+                                <button type="button" onClick={() => confirmDelete(item.id)} className="btn btn-sm btn-danger">Sí</button>
+                                <button type="button" onClick={cancelDelete} className="btn btn-sm btn-light border-nv"><X size={14} /></button>
+                              </div>
+                            ) : (
+                              <div className="d-flex gap-2">
+                                <button type="button" onClick={() => handleEdit(item)} className="btn btn-sm btn-light border-nv"><PencilLine size={14} /></button>
+                                <button type="button" onClick={() => requestDelete(item.id)} className="btn btn-sm btn-outline-danger"><Trash2 size={14} /></button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}
+                      {filteredItems.length === 0 && (
+                        <tr><td colSpan={4} className="text-center text-muted-nv py-3">No hay resultados para tu búsqueda.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -395,6 +543,7 @@ export default function AdminPanel() {
                         </span>
                       </li>
                     ))}
+                    {bookings.length === 0 && <li className="small text-muted-nv py-2">Sin reservas todavía.</li>}
                   </ul>
                 </div>
                 <div className="col-12 col-md-6">
@@ -406,6 +555,7 @@ export default function AdminPanel() {
                         <span>{payment.status || 'Pendiente'}</span>
                       </li>
                     ))}
+                    {payments.length === 0 && <li className="small text-muted-nv py-2">Sin pagos todavía.</li>}
                   </ul>
                 </div>
               </div>
@@ -469,6 +619,9 @@ export default function AdminPanel() {
                         </tr>
                       );
                     })}
+                    {users.length === 0 && (
+                      <tr><td colSpan={3} className="text-center text-muted-nv py-3">No hay usuarios registrados.</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
